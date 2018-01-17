@@ -1,0 +1,16 @@
+plugins:
+
+  # The Manager of Managers plugin is responsible for installing and
+  # otherwise handling of Cloudify Managers and HA Clusters
+  cmom:
+    executor: host_agent
+    source: cmom
+    package_name: cloudify-manager-of-managers
+
+node_types:
+
+  cloudify.nodes.CloudifyTier1Manager:
+    derived_from: cloudify.nodes.SoftwareComponent
+
+  cloudify.nodes.CloudifyTier1Cluster:
+    derived_from: cloudify.nodes.Root
