@@ -1,0 +1,97 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  This blueprint creates several VMs, installs a Cloudify Manager on each
+  of them, creates a Cloudify HA cluster between all the managers and uploads
+  several auxiliary resources to the cluster.
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.3.dev1/types.yaml
+
+  - include/infra.yaml
+
+  # Other inputs
+  - include/cloudify_manager_inputs.yaml
+  - include/ldap_inputs.yaml
+  - include/certificate_inputs.yaml
+  - include/additional_inputs.yaml
+
+  # Manager of Managers plugin
+  - plugins/cmom/plugin.yaml
+
+  # TODO: Need to download the RPM locally and create a small webserver to serve it to the other managers
+  # TODO: Allow an arbitrary dictionary to be provided to be merged with the config
+
+node_templates:
+
+  cloudify_manager:
+    type: cloudify.nodes.CloudifyTier1Manager
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: cmom.cmom.manager.install_rpm
+          inputs:
+            install_rpm_url: { get_input: install_rpm_url }
+            # This is an arbitrary dictionary which should mirror the structure of
+            # config.yaml in https://github.com/cloudify-cosmo/cloudify-manager-install/blob/master/config.yaml
+            config:
+              manager:
+                private_ip: { get_attribute: [ host, ip ]}
+                public_ip: { get_attribute: [ ip, floating_ip_address ] }
+                security:
+                  ssl_enabled: true
+                  admin_username: { get_input: manager_admin_username }
+                  admin_password: { get_input: manager_admin_password }
+              restservice:
+                ldap: { get_input: ldap_config }
+              ssl_inputs:
+                ca_cert_path: { get_input: ca_cert }
+                ca_key_path: { get_input: ca_key }
+        configure: cmom.cmom.manager.install_manager
+#        delete: cmom.cmom.manager.delete  # TODO: Is this necessary?
+
+  cloudify_cluster:
+    type: cloudify.nodes.CloudifyTier1Cluster
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: cloudify_manager
+        target_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure: cmom.cmom.cluster.preconfigure
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: cmom.cmom.cluster.start_cluster
+          executor: central_deployment_agent
+          inputs:
+            ca_cert: { get_input: ca_cert }
+        start:
+          implementation: cmom.cmom.cluster.add_additional_resources
+          executor: central_deployment_agent
+          inputs:
+            plugins: { get_input: plugins }
+            secrets: { get_input: secrets }
+
+groups:
+  manager_group:
+    members: [ ip, host, cloudify_manager ]
+    # TODO: Add an auto-heal policy
+
+policies:
+  scale:
+    type: cloudify.policies.scaling
+    properties:
+      default_instances: { get_input: num_of_instances }
+    targets: [manager_group]
+
+
+outputs:
+  cluster_master:
+    description: The public IP of the Cloudify Manager master in the cluster
+    value: { get_attribute: [ cloudify_cluster, master ] }
+  cluster_slaves:
+    description: The public IPs of the Cloudify Manager slaves in the cluster
+    value: { get_attribute: [cloudify_cluster, slaves ] }

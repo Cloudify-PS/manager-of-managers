@@ -1,0 +1,44 @@
+data_types:
+  cloudify.datatypes.LDAP:
+    description: LDAP configuration parameters
+    properties:
+      server:
+        description: The LDAP server address to authenticate against
+        type: string
+        required: true
+      username:
+        description: |
+          LDAP admin username. This user needs to be able to make requests
+          against the LDAP server
+        type: string
+        required: true
+      password:
+        description: LDAP admin password
+        type: string
+        required: true
+      domain:
+        description: The LDAP domain to be used by the server
+        type: string
+        required: true
+      dn_extra:
+        description: Extra LDAP DN options. (separated by the `;` sign. e.g. a=1;b=2)
+        default: ''
+        type: string
+        required: false
+      is_active_directory:
+        description: |
+          Specify whether the LDAP server used for authentication is an
+          Active Directory server
+        default: true
+        type: boolean
+        required: false
+
+inputs:
+  ldap_config:
+    description: LDAP configuration
+    type: cloudify.datatypes.LDAP
+    default:
+      server: ''
+      username: ''
+      password: ''
+      domain: ''

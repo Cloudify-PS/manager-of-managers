@@ -1,0 +1,12 @@
+# **NOTE** The below inputs are paths relative to the blueprint.yaml file!
+
+inputs:
+  ca_cert:
+    description: |
+      The CA certificate used to sign any auto generated certificates
+      (internal or external). This is the only certificate actually present on
+      the agent machines
+    default: { get_secret: ca_cert }
+  ca_key:
+    description: The key for the above certificate
+    default: { get_secret: ca_key }

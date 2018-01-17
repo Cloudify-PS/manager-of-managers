@@ -1,0 +1,86 @@
+data_types:
+  cloudify.datatypes.Resources:
+    description: A general Cloudify resource
+    properties:
+      tenant:
+        description: The tenant to which the resource should be uploaded
+        required: false
+        type: string
+      visibility:
+        description: |
+          Defines who can see the resource, can be set to one of
+          ['private', 'tenant', 'global']
+        type: string
+        required: false
+        default: tenant
+
+
+  cloudify.datatypes.Plugin:
+    derived_from: cloudify.datatypes.Resources
+    description: A type that describes a Cloudify plugin
+    properties:
+      wagon:
+        description: |
+          Either a URL of a Cloudify Plugin (e.g.
+          http://repository.cloudifysource.org/cloudify/wagons/cloudify-openstack-plugin/2.0.1/cloudify_openstack_plugin-2.0.1-py27-none-linux_x86_64-centos-Core.wgn),
+          or a local (relative to the master manager) path to such a wagon
+        required: true
+        type: string
+      yaml:
+        description: The plugin's plugin.yaml file - again, either URL or local path
+        required: true
+        type: string
+
+  cloudify.datatypes.Secret:
+    derived_from: cloudify.datatypes.Resources
+    description: A type that describes a Cloudify secret
+    properties:
+      key:
+        description: |
+          The name of the secret which will then be used by other
+          blueprints by the intrinsic `get_secret` function
+        type: string
+        required: true
+      string:
+        description: |
+          The string value of the secret [mutually exclusive with FILE]
+        type: string
+        required: false
+      file:
+        description: |
+          A local path to a file which contents should be used as the
+          secrets value [mutually exclusive with VALUE]
+        type: string
+        required: false
+
+inputs:
+  plugins:
+    description: >
+      A list of plugins to upload to the manager after its installation.
+      Each needs to be of type `cloudify.datatypes.Plugin`. E.g.:
+      - type: cloudify.datatypes.Plugin
+        wagon: <WAGON_1>
+        yaml: <YAML_1>
+      - type: cloudify.datatypes.Plugin
+        wagon: <WAGON_2>
+        yaml: <YAML_2>
+        tenant: <TENANT>
+    default: []
+
+  secrets:
+    description: >
+      A list of secrets to set on the manager after its installation.
+      Each needs to be of type `cloudify.datatypes.Secret`. E.g.:
+      - type: cloudify.datatypes.Secret
+        key: <KEY_1>
+        string: <STRING_1>
+      - type: cloudify.datatypes.Secret
+        key: <KEY_2>
+        FILE: <FILE_2>
+        tenant: <TENANT>
+    default: []
+
+  blueprints:
+    description: >
+      A list of blueprints to upload to the manager
+    default: []

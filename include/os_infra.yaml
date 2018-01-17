@@ -1,0 +1,132 @@
+# OpenStack imports, definitions and templates
+# The API of such a file are 2 node template - `ip` and `host`, which must
+# have 2 properties: `private_ip` and `public_ip`
+
+imports:
+  # TODO: Change to using the plugin: syntax in offline environments
+#  - plugin:cloudify-openstack-plugin?version=2.5.2
+  - http://www.getcloudify.org/spec/openstack-plugin/2.5.2/plugin.yaml
+
+# TODO: Handle OS Cinder for volumes
+inputs:
+  os_image:
+    description: OpenStack image name or ID to use for the new server
+  os_flavor:
+    description: OpenStack flavor name or ID to use for the new server
+  os_network:
+    description: OpenStack network name or ID the new server will be connected to
+  os_floating_network:
+    description: The name or ID of the OpenStack network to use for allocating floating ips
+  os_keypair:
+    description: OpenStack key pair name or ID of the key to associate with the new server
+  os_security_group:
+    description: The name or ID of the OpenStack security group the new server will connect to
+
+  os_username:
+    description: Username to authenticate to OpenStack with
+  os_password:
+    description: OpenStack password
+  os_tenant:
+    description: Name of OpenStack tenant to operate on
+  os_auth_url:
+    description: Authentication URL for KeyStone
+  os_region:
+    description: OpenStack region to use
+
+  # TODO: Uncomment when moving to production env with v3 Keystone
+#  os_project:
+#    description: Name of OpenStack project (tenant) to operate on
+#  os_project_domain:
+#    description: The name of the OpenStack project domain to use
+#    default: default
+#  os_user_domain:
+#    description: The name of the OpenStack user domain to use
+#    default: default
+
+dsl_definitions:
+  openstack_configuration: &openstack_configuration
+    username: { get_input: os_username }
+    password: { get_input: os_password }
+    tenant_name: { get_input: os_tenant }
+    auth_url: { get_input: os_auth_url }
+    region: { get_input: os_region }
+    # TODO: Uncomment when moving to production env with v3 Keystone
+#    project_domain_name: { get_input: os_project_domain }
+#    user_domain_name: { get_input: os_user_domain }
+
+
+node_types:
+  cloudify.openstack.nodes.IP:
+    derived_from: cloudify.openstack.nodes.FloatingIP
+    properties:
+      public_ip:
+        description: The same as `floating_ip_address`; here for the unified API
+        type: string
+        required: false
+
+node_templates:
+  os_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      openstack_config: *openstack_configuration
+      use_external_resource: true
+      resource_id: { get_input: os_security_group }
+
+  os_keypair:
+    type: cloudify.openstack.nodes.KeyPair
+    properties:
+      openstack_config: *openstack_configuration
+      use_external_resource: true
+      resource_id: { get_input: os_keypair }
+      private_key_path: { get_input: ssh_private_key_path }
+
+  os_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      openstack_config: *openstack_configuration
+      resource_id: { get_input: os_network }
+      use_external_resource: true
+
+  os_server_group:
+    type: cloudify.openstack.nodes.ServerGroup
+    properties:
+      openstack_config: *openstack_configuration
+      policy: affinity  # TODO: Change to soft-anti-affinity when moving to production env with v3 Keystone
+
+  # The host and the floating IP are named generically because they will be
+  # used in the blueprint, and shouldn't be IaaS specific
+  ip:
+    type: cloudify.openstack.nodes.IP
+    properties:
+      openstack_config: *openstack_configuration
+      floatingip:
+        floating_network_id: { get_input: os_floating_network }
+#      public_ip: { get_attribute: [SELF, floating_ip_address ]}  # TODO: See if this is possible/necessary
+
+  host:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      openstack_config: *openstack_configuration
+      agent_config:
+        user: { get_input: ssh_user }
+        key: { get_property: [ os_keypair, private_key_path ] }
+      image: { get_input: os_image }
+      flavor: { get_input: os_flavor }
+    relationships:
+      - type: cloudify.openstack.server_connected_to_keypair
+        target: os_keypair
+      - type: cloudify.openstack.server_connected_to_floating_ip
+        target: ip
+      - type: cloudify.openstack.server_connected_to_security_group
+        target: os_security_group
+      - type: cloudify.openstack.server_connected_to_server_group
+        target: os_server_group
+      - type: cloudify.relationships.connected_to
+        target: os_network
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              security_groups: [{ get_attribute: [ os_security_group, external_name ]}]
+
