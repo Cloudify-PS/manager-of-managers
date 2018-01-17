@@ -21,6 +21,9 @@ inputs:
     description: OpenStack key pair name or ID of the key to associate with the new server
   os_security_group:
     description: The name or ID of the OpenStack security group the new server will connect to
+  os_server_group_policy:
+    description: The policy to use for the server group
+    default: affinity  # TODO: Change to soft-anti-affinity when moving to production env with v3 Keystone
 
   os_username:
     description: Username to authenticate to OpenStack with
@@ -91,7 +94,7 @@ node_templates:
     type: cloudify.openstack.nodes.ServerGroup
     properties:
       openstack_config: *openstack_configuration
-      policy: affinity  # TODO: Change to soft-anti-affinity when moving to production env with v3 Keystone
+      policy: { get_input: os_server_group_policy }
 
   # The host and the floating IP are named generically because they will be
   # used in the blueprint, and shouldn't be IaaS specific
