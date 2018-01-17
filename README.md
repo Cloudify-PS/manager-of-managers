@@ -46,7 +46,7 @@ cfy plugins upload <CMOM_WAGON_OUTPUT> -y plugins/cmom/plugin.yaml
 ### Installing the blueprint
 
 Now all that is left is to edit the inputs file (you can copy the
-[`sample_inputs`](sample_input.yaml) file and edit it), and run:
+[`sample_inputs`](sample_inputs.yaml) file and edit it), and run:
 
 ```
 cfy install blueprint.yaml -b <BLUEPRINT_NAME> -d <DEPLOYMENT_ID> -i <INPUTS_FILE>
