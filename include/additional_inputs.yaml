@@ -22,7 +22,7 @@ inputs:
           [private, tenant, global] (Optional - default is tenant).
       Both WAGON and YAML are *required* fields
     default: []
-inputs:
+
   secrets:
     description: >
       A list of secrets to set on the manager after its installation.
@@ -43,4 +43,9 @@ inputs:
         * VISIBILITY defines who can see the secret - must be one of
           [private, tenant, global] (Optional - default is tenant).
       KEY is a *required* field, as well as one (and only one) of STRING or FILE.
+    default: []
+
+  blueprints:
+    # TODO: Decide on format
+    description: A list of additional blueprints to upload. Format TBD
     default: []
