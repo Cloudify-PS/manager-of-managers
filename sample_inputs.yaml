@@ -1,0 +1,60 @@
+
+# OpenStack image name or ID to use for the new server
+os_image: <OPENSTACK_IMAGE_ID>
+
+# OpenStack flavor name or ID to use for the new server
+os_flavor: <OPENSTACK_FLAVOR_NAME/ID>
+
+# OpenStack network name or ID the new server will be connected to
+os_network: <OPENSTACK_NETWORK_NAME/ID>
+
+# OpenStack key pair name or ID of the key to associate with the new server
+os_keypair: <OPENSTACK_KEPAIR_NAME/ID>
+
+# The name or ID of the OpenStack network to use for allocating floating ips
+os_floating_network: <OPENSTACK_EXTERNAL_NETWORK_NAME/ID>
+
+# The name or ID of the OpenStack security group the new server will connect to
+os_security_group: <OPENSTACK_SECURITY_GROUP_NAME/ID>
+
+#os_project_domain: <OPENSTACK_DOMAIN_NAME/ID>
+
+# Username to authenticate to OpenStack with
+os_username: <OPENSTACK_USERNAME>
+
+# OpenStack password
+os_password: <OPENSTACK_PASSWORD>  # Can be passed manually to the `cfy` command
+
+# Name of OpenStack tenant to operate on
+os_tenant: <OPENSTACK_TENANT>
+
+# Authentication URL for KeyStone
+os_auth_url: <OPENSTACK_AUTH_URL>
+
+# OpenStack region to use
+os_region: <OPENSTACK_REGION>
+
+# User name used when SSH-ing into the manager machines
+ssh_user: centos
+
+# Path to the private key for the keypair whose name is provided by
+# "keypair_name". Path must be accessible from within the orchestrating machine.
+ssh_private_key_path: /etc/cloudify/ssh_key
+
+# The CA certificate + key used to sign any auto generated certificates
+# (internal or external)
+ca_cert: files/ca_cert.pem
+ca_key: files/ca_key.pem
+
+# A list of plugins to upload to the manager after its installation.
+plugins:
+  - wagon: https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.5.2/cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn
+    yaml: https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.5.2/plugin.yaml
+
+# A list of secrets to set on the manager after its installation.
+secrets:
+  - key: test_secret_key
+    string: test_secret_string
+  - key: test_secret_from_file
+    file: /etc/cloudify/ssl/cloudify_internal_ca_cert.pem
+    visibility: global
