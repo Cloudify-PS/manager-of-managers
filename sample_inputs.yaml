@@ -1,3 +1,9 @@
+# This is a *partial* list of the required inputs. Some should be provided
+# via the secret store mechanism (run `cfy secrets create -h` to find out more),
+# while others (like the manager password) can be potentially provided in this
+# file or via the `-i` option when creating the deployment (e.g.
+# `cfy deployments create dep -b bp -i inputs.yaml -i os_password=<GUESS_ME>`)
+
 
 # OpenStack image name or ID to use for the new server
 os_image: <OPENSTACK_IMAGE_ID>
