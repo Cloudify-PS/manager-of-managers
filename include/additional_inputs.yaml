@@ -1,4 +1,17 @@
+# **NOTE** - When mentioning local paths in the context of these inputs, the
+# paths in question are paths on the *Tier 2* manager. So if it is desirable
+# to upload files from a local location, these files need to be present on the
+# Tier 2 manager in advance. Otherwise, URLs may be used freely
+
 inputs:
+  tenants:
+    description: >
+      A list of tenants to create after the manager's installation.
+      The format is a simple list of tenant names:
+      - <TENANT_NAME_1>
+      - <TENANT_NAME_2>
+    default: []
+
   plugins:
     description: >
       A list of plugins to upload to the manager after its installation.
@@ -15,8 +28,9 @@ inputs:
           or a local (relative to the master manager) path to such wagon (required)
         * YAML is the plugin's plugin.yaml file - again, either URL or local
           path (required)
-        * TENANT is the tenant to which the plugin will be uploaded (will be
-          created if it doesn't exist already). (Optional - default is
+        * TENANT is the tenant to which the plugin will be uploaded (the tenant
+          needs to already exist on the manager - use the above `tenants` input
+          to create any tenants in advance). (Optional - default is
           default_tenant)
         * VISIBILITY defines who can see the plugin - must be one of
           [private, tenant, global] (Optional - default is tenant).
@@ -37,8 +51,9 @@ inputs:
         * STRING is the string value of the secret [mutually exclusive with FILE]
         * FILE is a local path to a file which contents should be used as the
           secrets value [mutually exclusive with VALUE]
-        * TENANT is the tenant to which the secret will be uploaded (will be
-          created if it doesn't exist already). (Optional - default is
+        * TENANT is the tenant to which the secret will be uploaded (the tenant
+          needs to already exist on the manager - use the above `tenants` input
+          to create any tenants in advance). (Optional - default is
           default_tenant)
         * VISIBILITY defines who can see the secret - must be one of
           [private, tenant, global] (Optional - default is tenant).
@@ -46,6 +61,25 @@ inputs:
     default: []
 
   blueprints:
-    # TODO: Decide on format
-    description: A list of additional blueprints to upload. Format TBD
+    description: >
+      A list of additional blueprints to upload to the manager after install.
+      The format should be as follows:
+      - path: <PATH_1>
+        id: <ID_1>
+        filename: <FILENAME_1>
+        tenant: <TENANT_1>
+        visibility: <VISIBILITY_1>
+      Where:
+        * PATH can be either a local blueprint yaml file, a blueprint
+          archive or a url to a blueprint archive (required)
+        * ID is the unique identifier for the blueprint (if not specified, the
+          name of the blueprint folder/archive will be used
+        * FILENAME is the name of an archive's main blueprint file. Only
+          relevant when uploading an archive
+        * TENANT is the tenant to which the blueprint will be uploaded (the tenant
+          needs to already exist on the manager - use the above `tenants` input
+          to create any tenants in advance). (Optional - default is
+          default_tenant)
+        * VISIBILITY defines who can see the secret - must be one of
+          [private, tenant, global] (Optional - default is tenant).
     default: []
