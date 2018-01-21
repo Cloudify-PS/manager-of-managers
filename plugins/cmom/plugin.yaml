@@ -2,8 +2,18 @@ plugins:
 
   # The Manager of Managers plugin is responsible for installing and
   # otherwise handling of Cloudify Managers and HA Clusters
-  cmom:
+
+  # The 2 definitions (manager and cluster) differ in their execution context:
+  # the manager plugin is executed on the Tier 1 manager, while the cluster
+  # plugin is executed on the Tier 2 manager (for operations like creating the
+  # cluster and uploading resources to the cluster)
+  manager:
     executor: host_agent
+    source: cmom
+    package_name: cloudify-manager-of-managers
+
+  cluster:
+    executor: central_deployment_agent
     source: cmom
     package_name: cloudify-manager-of-managers
 
