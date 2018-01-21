@@ -75,7 +75,7 @@ def _download_certificates():
     """
     Download certificates from the blueprint folder on the Tier 2 manager
     """
-    ctx.logger.info('Downloading certificates to local paths...')
+    ctx.logger.info('Downloading certificates to a local path...')
     config = inputs['config']
     ssl_inputs = config.setdefault('ssl_inputs', {})
     for key, value in ssl_inputs.items():
