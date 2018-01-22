@@ -21,6 +21,75 @@ node_types:
 
   cloudify.nodes.CloudifyTier1Manager:
     derived_from: cloudify.nodes.SoftwareComponent
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: manager.cmom.manager.install_rpm
+          inputs:
+            install_rpm_url:
+              description: The URL to the install RPM which will be used to install the manager
+            config:
+              description: >
+                This is an arbitrary dictionary which should mirror the structure of
+                config.yaml in https://github.com/cloudify-cosmo/cloudify-manager-install/blob/master/config.yaml
+        configure: manager.cmom.manager.install_manager
+#        delete: manager.cmom.manager.delete  # TODO: Is this necessary?
 
   cloudify.nodes.CloudifyTier1Cluster:
     derived_from: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: cluster.cmom.cluster.start_cluster
+          inputs:
+            ca_cert:
+              description: |
+                The CA certificate which will be used to connect to the Tier 1
+                managers
+        start:
+          implementation: cluster.cmom.cluster.add_additional_resources
+          inputs:
+            tenants:
+              description: A list of tenants to create on the Tier 1 manager
+              default: []
+            plugins:
+              description: A list of plugins to upload to the Tier 1 manager
+              default: []
+            secrets:
+              description: A list of secrets to create on the Tier 1 manager
+              default: []
+            blueprints:
+              description: A list of blueprints to upload to the Tier 1 manager
+              default: []
+      maintenance_interface:
+        backup:
+          implementation: cluster.cmom.cluster.backup
+          inputs:
+            snapshot_id:
+              description: |
+                The ID of the snapshot that will be created. If not specified,
+                a snapshot ID based on the current deployemnt and datetime
+                will be assigned
+              default: ''
+        restore:
+          implementation: cluster.cmom.cluster.restore
+          inputs:
+            snapshot_path:
+              description: |
+                A local (relative to the Tier 2 manager) path to a snapshot
+                that should be used. Mutually exlusive with `old_deployment_id`
+                and `snapshot_id`
+              default: ''
+            old_deployment_id:
+              description: |
+                The ID of the previous deployment which was used to control
+                the Tier 1 managers. If the `backup` workflow was used with
+                default values there will be a special folder with all the
+                snapshots from the Tier 1 managers. Must be provided along
+                with `snaphot_id` in order to get the correct archive
+              default: ''
+            snapshot_id:
+              description: |
+                The ID of the snapshot to use. This is only relevant if
+                `old_deployment_id` is provided as well
+              default: ''
