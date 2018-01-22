@@ -21,6 +21,9 @@ imports:
 
   # TODO: Need to download the RPM locally and create a small webserver to serve it to the other managers
   # TODO: Allow an arbitrary dictionary to be provided to be merged with the config
+  # TODO: Create a backup workflow
+  # TODO: Create an upgrade workflow
+  # TODO: Consider creating a manager config datatype
 
 node_templates:
 
@@ -32,11 +35,8 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: manager.cmom.manager.install_rpm
           inputs:
             install_rpm_url: { get_input: install_rpm_url }
-            # This is an arbitrary dictionary which should mirror the structure of
-            # config.yaml in https://github.com/cloudify-cosmo/cloudify-manager-install/blob/master/config.yaml
             config:
               manager:
                 private_ip: { get_attribute: [ host, ip ]}
@@ -50,8 +50,6 @@ node_templates:
               ssl_inputs:
                 ca_cert_path: { get_input: ca_cert }
                 ca_key_path: { get_input: ca_key }
-        configure: manager.cmom.manager.install_manager
-#        delete: manager.cmom.manager.delete  # TODO: Is this necessary?
 
   cloudify_cluster:
     type: cloudify.nodes.CloudifyTier1Cluster
@@ -64,11 +62,9 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
-          implementation: cluster.cmom.cluster.start_cluster
           inputs:
             ca_cert: { get_input: ca_cert }
         start:
-          implementation: cluster.cmom.cluster.add_additional_resources
           inputs:
             tenants: { get_input: tenants }
             plugins: { get_input: plugins }
@@ -86,19 +82,6 @@ policies:
     properties:
       default_instances: { get_input: num_of_instances }
     targets: [manager_group]
-
-workflows:
-  add_resources:
-    mapping: cluster.cmom.workflows.add_resources
-    parameters:
-      tenants:
-        default: []
-      plugins:
-        default: []
-      secrets:
-        default: []
-      blueprints:
-        default: []
 
 outputs:
   cluster_master:
