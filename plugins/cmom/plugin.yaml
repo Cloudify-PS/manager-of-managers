@@ -98,7 +98,7 @@ node_types:
 workflows:
 
   add_resources:
-    mapping: cluster.cmom.workflows.add_resources
+    mapping: cluster.cmom.cluster.workflows.add_resources
     parameters:
       tenants:
         default: []
@@ -110,13 +110,13 @@ workflows:
         default: []
 
   backup:
-    mapping: cluster.cmom.workflows.backup
+    mapping: cluster.cmom.cluster.workflows.backup
     parameters:
       snapshot_id:
         default: ''
 
   restore:
-    mapping: cluster.cmom.workflows.restore
+    mapping: cluster.cmom.cluster.workflows.restore
     parameters:
       snapshot_path:
         default: ''

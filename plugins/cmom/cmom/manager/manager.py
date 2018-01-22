@@ -7,7 +7,7 @@ from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
 
-from .common import execute_and_log, download_certificate
+from ..common import execute_and_log, download_certificate
 
 INSTALL_RPM_PATH = '/tmp/cloudify-manager-install.rpm'
 CONFIG_PATH = '/etc/cloudify/config.yaml'
