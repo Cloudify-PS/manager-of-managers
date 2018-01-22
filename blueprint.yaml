@@ -54,11 +54,8 @@ node_templates:
   cloudify_cluster:
     type: cloudify.nodes.CloudifyTier1Cluster
     relationships:
-      - type: cloudify.relationships.connected_to
+      - type: cluster_connected_to_manager
         target: cloudify_manager
-        target_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure: manager.cmom.cluster.preconfigure
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
