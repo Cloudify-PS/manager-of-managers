@@ -1,6 +1,7 @@
 from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
+from cloudify.exceptions import CommandExecutionException
 
 from .utils import execute_and_log, use_master_profile
 
@@ -16,10 +17,19 @@ def _add_tenant_and_visibility(cmd, resource):
     return cmd
 
 
+def _try_running_command(cmd, warning_msg):
+    try:
+        execute_and_log(cmd)
+    except CommandExecutionException as e:
+        ctx.logger.warning(warning_msg)
+        ctx.logger.warning('Error: {0}'.format(e.error))
+
+
 def _create_tenants():
     tenants = inputs.get('tenants', [])
     for tenant in tenants:
-        execute_and_log(['cfy', 'tenants', 'create', tenant])
+        cmd = ['cfy', 'tenants', 'create', tenant]
+        _try_running_command(cmd, 'Could not create tenant {0}'.format(tenant))
 
 
 def _upload_plugins():
@@ -44,7 +54,10 @@ Both `wagon` and `yaml` are required fields
                plugin['wagon'], '-y', plugin['yaml']]
 
         cmd = _add_tenant_and_visibility(cmd, plugin)
-        execute_and_log(cmd)
+        _try_running_command(
+            cmd,
+            'Could not upload plugin {0}'.format(plugin['wagon'])
+        )
 
 
 def _create_secrets():
@@ -78,7 +91,10 @@ Expected format is:
             cmd += ['-f', secret['file']]
 
         cmd = _add_tenant_and_visibility(cmd, secret)
-        execute_and_log(cmd)
+        _try_running_command(
+            cmd,
+            'Could not create secret {0}'.format(secret['key'])
+        )
 
 
 def _upload_blueprints():
@@ -111,7 +127,10 @@ Expected format is:
             cmd += ['-n', blueprint_filename]
 
         cmd = _add_tenant_and_visibility(cmd, blueprint)
-        execute_and_log(cmd)
+        _try_running_command(
+            cmd,
+            'Could not upload blueprint {0}'.format(blueprint['path'])
+        )
 
 
 @operation
