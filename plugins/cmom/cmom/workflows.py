@@ -9,11 +9,25 @@ def _get_cluster_instance(ctx):
     return list(cluster_node.instances)[0]
 
 
-@workflow
-def add_resources(ctx, **kwargs):
+def _execute_task(ctx, operation, **kwargs):
     cluster_instance = _get_cluster_instance(ctx)
     cluster_instance.execute_operation(
-        operation='cloudify.interfaces.lifecycle.start',
+        operation=operation,
         kwargs=kwargs,
         allow_kwargs_override=True
     ).get()
+
+
+@workflow
+def add_resources(ctx, **kwargs):
+    _execute_task(ctx, 'cloudify.interfaces.lifecycle.start', **kwargs)
+
+
+@workflow
+def backup(ctx, **kwargs):
+    _execute_task(ctx, 'cloudify.maintenance_interface.backup', **kwargs)
+
+
+@workflow
+def restore(ctx, **kwargs):
+    _execute_task(ctx, 'cloudify.maintenance_interface.restore', **kwargs)
