@@ -2,9 +2,13 @@ import os
 import subprocess
 
 from cloudify import ctx
+from cloudify.exceptions import CommandExecutionException
 
 
-def execute_and_log(cmd, clean_env=False, deployment_workdir=False):
+def execute_and_log(cmd,
+                    clean_env=False,
+                    deployment_workdir=False,
+                    no_log=False):
     """
     Execute a command and log each line of its output as it is printed to
     stdout
@@ -17,6 +21,7 @@ def execute_and_log(cmd, clean_env=False, deployment_workdir=False):
         cert is already set, and this creates a conflict.
     :param deployment_workdir: If set to true instead of using the default
         .cloudify folder, we use a folder that depends on the deployment ID
+    :param no_log: If set to True the output will not be logged
     """
     env = os.environ.copy()
     if clean_env:
@@ -27,12 +32,14 @@ def execute_and_log(cmd, clean_env=False, deployment_workdir=False):
 
     popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env)
     for stdout_line in iter(popen.stdout.readline, ""):
-        if stdout_line:
+        if stdout_line and not no_log:
             ctx.logger.info(stdout_line)
     popen.stdout.close()
     return_code = popen.wait()
     if return_code:
-        raise subprocess.CalledProcessError(return_code, cmd)
+        raise CommandExecutionException(
+            cmd, popen.stderr, popen.stdout, return_code
+        )
 
 
 def download_certificate(relative_path, deployment_workdir=False):

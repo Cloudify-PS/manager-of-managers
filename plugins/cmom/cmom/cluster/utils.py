@@ -5,8 +5,13 @@ from ..common import execute_and_log as _execute_and_log
 DEFAULT_TENANT = 'default_tenant'
 
 
-def execute_and_log(cmd):
-    _execute_and_log(cmd, clean_env=True, deployment_workdir=True)
+def execute_and_log(cmd, no_log=False):
+    _execute_and_log(
+        cmd,
+        clean_env=True,
+        deployment_workdir=True,
+        no_log=no_log
+    )
 
 
 def use_profile(config, cert):
