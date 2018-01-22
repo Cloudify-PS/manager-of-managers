@@ -93,3 +93,34 @@ node_types:
                 The ID of the snapshot to use. This is only relevant if
                 `old_deployment_id` is provided as well
               default: ''
+
+# For descriptions of workflow parameters see above
+workflows:
+
+  add_resources:
+    mapping: cluster.cmom.workflows.add_resources
+    parameters:
+      tenants:
+        default: []
+      plugins:
+        default: []
+      secrets:
+        default: []
+      blueprints:
+        default: []
+
+  backup:
+    mapping: cluster.cmom.workflows.backup
+    parameters:
+      snapshot_id:
+        default: ''
+
+  restore:
+    mapping: cluster.cmom.workflows.restore
+    parameters:
+      snapshot_path:
+        default: ''
+      old_deployment_id:
+        default: ''
+      snapshot_id:
+        default: ''
