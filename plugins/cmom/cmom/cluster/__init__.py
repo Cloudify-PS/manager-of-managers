@@ -3,3 +3,7 @@ from .cluster import (                              # NOQA
     start_cluster,
     preconfigure
 )
+from .maintenance import (                          # NOQA
+    backup,
+    restore
+)
