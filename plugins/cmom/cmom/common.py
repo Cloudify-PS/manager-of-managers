@@ -30,16 +30,14 @@ def execute_and_log(cmd,
     if deployment_workdir:
         env['CFY_WORKDIR'] = workdir()
 
-    popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=env)
-    for stdout_line in iter(popen.stdout.readline, ""):
-        if stdout_line and not no_log:
-            ctx.logger.info(stdout_line)
-    popen.stdout.close()
-    return_code = popen.wait()
+    proc = _run_process(cmd, env)
+    output = _process_output(proc, not no_log)
+    return_code = _return_code(proc)
     if return_code:
         raise CommandExecutionException(
-            cmd, popen.stderr, popen.stdout, return_code
+            cmd, error=output, output=output, code=return_code
         )
+    return output
 
 
 def download_certificate(relative_path, deployment_workdir=False):
@@ -61,3 +59,28 @@ def workdir():
     if not os.path.isdir(_workdir):
         os.mkdir(_workdir)
     return _workdir
+
+
+def _process_output(proc, should_log):
+    output_list = []
+    for stdout_line in iter(proc.stdout.readline, ""):
+        if stdout_line:
+            output_list.append(stdout_line)
+            if should_log:
+                ctx.logger.info(stdout_line)
+
+    return '\n'.join(output_list)
+
+
+def _run_process(cmd, env):
+    return subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        env=env
+    )
+
+
+def _return_code(proc):
+    proc.stdout.close()
+    return proc.wait()

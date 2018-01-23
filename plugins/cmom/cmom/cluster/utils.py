@@ -6,7 +6,7 @@ DEFAULT_TENANT = 'default_tenant'
 
 
 def execute_and_log(cmd, no_log=False):
-    _execute_and_log(
+    return _execute_and_log(
         cmd,
         clean_env=True,
         deployment_workdir=True,
