@@ -138,3 +138,5 @@ def clear_data(**_):
         )
     )
     shutil.rmtree(workdir(), ignore_errors=True)
+    ctx.instance.runtime_properties.pop('managers')
+    ctx.instance.update()
