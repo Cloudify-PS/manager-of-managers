@@ -4,10 +4,12 @@ import subprocess
 from cloudify import ctx
 from cloudify.exceptions import CommandExecutionException
 
+CERTIFICATES = 'certificates'
+
 
 def execute_and_log(cmd,
                     clean_env=False,
-                    deployment_workdir=False,
+                    deployment_workdir=None,
                     no_log=False):
     """
     Execute a command and log each line of its output as it is printed to
@@ -28,7 +30,7 @@ def execute_and_log(cmd,
         env.pop('LOCAL_REST_CERT_FILE', None)
 
     if deployment_workdir:
-        env['CFY_WORKDIR'] = workdir()
+        env['CFY_WORKDIR'] = deployment_workdir
 
     proc = _run_process(cmd, env)
     output = _process_output(proc, not no_log)
@@ -42,7 +44,7 @@ def execute_and_log(cmd,
 
 def download_certificate(relative_path, deployment_workdir=False):
     base_dir = workdir() if deployment_workdir else os.path.expanduser('~')
-    target_dir = os.path.join(base_dir, 'certificates')
+    target_dir = os.path.join(base_dir, CERTIFICATES)
     if not os.path.isdir(target_dir):
         os.mkdir(target_dir)
 
@@ -52,10 +54,11 @@ def download_certificate(relative_path, deployment_workdir=False):
     return local_path
 
 
-def workdir():
+def workdir(deployment_id=None):
     """Return a workdir based on the current deployment"""
 
-    _workdir = os.path.expanduser('~/{0}'.format(ctx.deployment.id))
+    deployment_id = deployment_id or ctx.deployment.id
+    _workdir = os.path.expanduser('~/{0}'.format(deployment_id))
     if not os.path.isdir(_workdir):
         os.mkdir(_workdir)
     return _workdir
