@@ -15,15 +15,16 @@ imports:
   - include/ldap_inputs.yaml
   - include/certificate_inputs.yaml
   - include/additional_inputs.yaml
+  - include/upgrade_inputs.yaml
 
   # Manager of Managers plugin
   - plugins/cmom/plugin.yaml
 
   # TODO: Need to download the RPM locally and create a small webserver to serve it to the other managers
   # TODO: Allow an arbitrary dictionary to be provided to be merged with the config
-  # TODO: Create a backup workflow
-  # TODO: Create an upgrade workflow
+  # TODO: Implement restore workflow in install
   # TODO: Consider creating a manager config datatype
+  # TODO: Remove deployment workdir upon deployment deletion
 
 node_templates:
 
@@ -61,6 +62,12 @@ node_templates:
         configure:
           inputs:
             ca_cert: { get_input: ca_cert }
+            restore: { get_input: restore }
+            backup: { get_input: backup }
+            snapshot_path: { get_input: snapshot_path }
+            old_deployment_id: { get_input: old_deployment_id }
+            snapshot_id: { get_input: snapshot_id }
+            transfer_agents: { get_input: transfer_agents }
         start:
           inputs:
             tenants: { get_input: tenants }

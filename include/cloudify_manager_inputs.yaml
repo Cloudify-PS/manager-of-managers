@@ -1,6 +1,7 @@
 inputs:
   install_rpm_url:
     description: The URL of the Cloudify Manager installation RPM
+    type: string
     default: { get_secret: install_rpm_url }
   manager_admin_username:
     description: |
@@ -8,7 +9,9 @@ inputs:
     default: admin
   manager_admin_password:
     description: The password for the Cloudify Manager admin user
+    type: string
     default: { get_secret: manager_admin_password }
   num_of_instances:
     description: The number of Cloudify Manager instances in a cluster
+    type: integer
     default: 2

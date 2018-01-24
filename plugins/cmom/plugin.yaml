@@ -46,6 +46,51 @@ node_types:
               description: |
                 The CA certificate which will be used to connect to the Tier 1
                 managers
+            restore:
+              description: |
+                If set to true then before creating the cluster first a
+                snapshot will be restored on the master Tier 1 manager. Must
+                be used in conjunction with some of the below inputs
+              type: boolean
+              default: false
+            backup:
+              description: |
+                Only relevant if `restore` is set to true!
+                Must be used in conjunction with `old_deployment_id` (and
+                optionally with `snapshot_id`).
+                If set to true, a snapshot will be created on the old
+                deployment (based on `old_deployment_id` and, if passed, on
+                `snapshot_id`), and it will be used in the restore workflow
+              type: boolean
+              default: false
+            snapshot_path:
+              description: |
+                A local (relative to the Tier 2 manager) path to a snapshot
+                that should be used. Mutually exclusive with `old_deployment_id`
+                and `snapshot_id`
+              type: string
+              default: ''
+            old_deployment_id:
+              description: |
+                The ID of the previous deployment which was used to control
+                the Tier 1 managers. If the `backup` workflow was used with
+                default values there will be a special folder with all the
+                snapshots from the Tier 1 managers. If the `backup` input
+                is set to `false` `snaphot_id` must be provided as well
+              type: string
+              default: ''
+            snapshot_id:
+              description: |
+                The ID of the snapshot to use. This is only relevant if
+                `old_deployment_id` is provided as well
+              type: string
+              default: ''
+            transfer_agents:
+              description: |
+                If set to `true`, an `install_new_agents` command will be
+                executed after the restore is complete
+              type: boolean
+              default: true
         start:
           implementation: cluster.cmom.cluster.add_additional_resources
           inputs:
@@ -61,6 +106,7 @@ node_types:
             blueprints:
               description: A list of blueprints to upload to the Tier 1 manager
               default: []
+        unlink: cluster.cmom.cluster.clear_data
       maintenance_interface:
         backup:
           implementation: cluster.cmom.cluster.backup
@@ -70,28 +116,6 @@ node_types:
                 The ID of the snapshot that will be created. If not specified,
                 a snapshot ID based on the current deployemnt and datetime
                 will be assigned
-              default: ''
-        restore:
-          implementation: cluster.cmom.cluster.restore
-          inputs:
-            snapshot_path:
-              description: |
-                A local (relative to the Tier 2 manager) path to a snapshot
-                that should be used. Mutually exlusive with `old_deployment_id`
-                and `snapshot_id`
-              default: ''
-            old_deployment_id:
-              description: |
-                The ID of the previous deployment which was used to control
-                the Tier 1 managers. If the `backup` workflow was used with
-                default values there will be a special folder with all the
-                snapshots from the Tier 1 managers. Must be provided along
-                with `snaphot_id` in order to get the correct archive
-              default: ''
-            snapshot_id:
-              description: |
-                The ID of the snapshot to use. This is only relevant if
-                `old_deployment_id` is provided as well
               default: ''
 
 # For descriptions of workflow parameters see above

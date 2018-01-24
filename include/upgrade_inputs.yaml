@@ -1,0 +1,46 @@
+inputs:
+  restore:
+    description: |
+      Should the newly installed Cloudify Manager be restored from a previous
+      installation. Must be used in conjunction with some of the below inputs.
+      See plugin.yaml for more details
+    type: boolean
+    default: false
+  backup:
+    description: |
+      Only relevant if `restore` is set to true!
+      Must be used in conjunction with `old_deployment_id` (and
+      optionally with `snapshot_id`).
+      If set to true, a snapshot will be created on the old
+      deployment (based on `old_deployment_id` and, if passed, on
+      `snapshot_id`), and it will be used in the restore workflow
+    type: boolean
+    default: false
+  snapshot_path:
+    description: |
+      A local (relative to the Tier 2 manager) path to a snapshot
+      that should be used. Mutually exclusive with `old_deployment_id`
+      and `snapshot_id`
+    type: string
+    default: ''
+  old_deployment_id:
+    description: |
+      The ID of the previous deployment which was used to control
+      the Tier 1 managers. If the `backup` workflow was used with
+      default values there will be a special folder with all the
+      snapshots from the Tier 1 managers. If the `backup` input
+      is set to `false` `snapshot_id` must be provided as well
+    type: string
+    default: ''
+  snapshot_id:
+    description: |
+      The ID of the snapshot to use. This is only relevant if
+      `old_deployment_id` is provided as well
+    type: string
+    default: ''
+  transfer_agents:
+    description: |
+      If set to `true`, an `install_new_agents` command will be
+      executed after the restore is complete
+    type: boolean
+    default: true
