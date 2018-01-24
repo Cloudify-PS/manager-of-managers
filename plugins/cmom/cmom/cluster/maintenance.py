@@ -169,5 +169,40 @@ def restore(config):
         execute_and_log(['cfy', 'agents', 'install'])
 
 
+def _is_snapshot_restored(execution_id):
+    output = execute_and_log(
+        ['cfy', 'executions', 'get', execution_id],
+        no_log=True
+    )
+    for line in output.split('\n'):
+        if execution_id not in line:
+            continue
+        if 'terminated' in line:
+            return True
+    return False
+
+
 def _restore_snapshot(snapshot_id):
-    execute_and_log(['cfy', 'snapshots', 'restore', snapshot_id])
+    output = execute_and_log(['cfy', 'snapshots', 'restore', snapshot_id])
+    execution_id = output.split("The execution's id is")[1].strip()
+
+    ctx.logger.info('Waiting for the snapshot to be restored...')
+    snapshot_restored = False
+    for retry in range(10):
+        ctx.logger.debug(
+            'Waiting for the snapshot to be restored [retry {0}/10]'.format(
+                retry
+            )
+        )
+
+        snapshot_restored = _is_snapshot_restored(execution_id)
+        if snapshot_restored:
+            ctx.logger.info(
+                'Snapshot {0} created successfully'.format(snapshot_id)
+            )
+            break
+        sleep(3)
+    if not snapshot_restored:
+        raise NonRecoverableError(
+            'Could not restore snapshot {0}'.format(snapshot_id)
+        )
