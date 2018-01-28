@@ -21,7 +21,6 @@ imports:
   - plugins/cmom/plugin.yaml
 
   # TODO: Need to download the RPM locally and create a small webserver to serve it to the other managers
-  # TODO: Allow an arbitrary dictionary to be provided to be merged with the config
   # TODO: Consider creating a manager config datatype
   # TODO: Implement solution for scenarios where the IPs are not provided by OS
 
@@ -50,6 +49,7 @@ node_templates:
               ssl_inputs:
                 ca_cert_path: { get_input: ca_cert }
                 ca_key_path: { get_input: ca_key }
+            additional_config: { get_input: additional_config }
 
   cloudify_cluster:
     type: cloudify.nodes.CloudifyTier1Cluster
@@ -88,7 +88,7 @@ policies:
 
 outputs:
   cluster_ips:
-    description: |
+    description: >
       A list of manager IPs in the cluster (Note: the first IP is the master,
       unless there was an HA failover)
     value: { get_attribute: [ cloudify_cluster, managers ] }

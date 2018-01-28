@@ -52,15 +52,58 @@ ssh_private_key_path: /etc/cloudify/ssh_key
 ca_cert: files/ca_cert.pem
 ca_key: files/ca_key.pem
 
-# A list of plugins to upload to the manager after its installation.
+
+#####################################################################
+# ADDITIONAL RESOURCES
+#####################################################################
+
+# A list of tenants to create on the manager after its installation
+tenants:
+  - tenant_1
+  - tenant_2
+
+# A list of plugins to upload to the manager after its installation
 plugins:
   - wagon: https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.5.2/cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn
     yaml: https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.5.2/plugin.yaml
+    tenant: tenant_1
 
-# A list of secrets to set on the manager after its installation.
+# A list of secrets to set on the manager after its installation
 secrets:
   - key: test_secret_key
     string: test_secret_string
   - key: test_secret_from_file
     file: /etc/cloudify/ssl/cloudify_internal_ca_cert.pem
     visibility: global
+
+# A list of blueprints to create on the manager after its installation
+blueprints:
+  - path: https://github.com/cloudify-cosmo/cloudify-hello-world-example/archive/master.zip
+  - path: https://github.com/cloudify-cosmo/cloudify-hello-world-example/archive/master.zip
+    id: second_bp
+    filename: singlehost-blueprint.yaml
+    tenant: tenant_1
+  - path: https://github.com/cloudify-cosmo/cloudify-hello-world-example/archive/master.zip
+    id: third_bp
+    filename: openstack-blueprint.yaml
+    tenant: tenant_2
+    visibility: global
+
+
+#####################################################################
+# ADDITIONAL CONFIG
+#####################################################################
+
+# An arbitrary dictionary which should mirror the structure of config.yaml
+# in https://github.com/cloudify-cosmo/cloudify-manager-install/blob/master/config.yaml
+# It will be merged (while taking precedence) with the config as described
+# in the cloudify.nodes.CloudifyTier1Manager type in the plugin.yaml file.
+# Whenever possible the inputs in the blueprint.yaml file should be used.
+additional_config:
+  sanity:
+    skip_sanity: true
+  restservice:
+    log:
+      level: DEBUG
+  mgmtworker:
+    log_level: DEBUG

@@ -15,3 +15,11 @@ inputs:
     description: The number of Cloudify Manager instances in a cluster
     type: integer
     default: 2
+  additional_config:
+    description: >
+      An arbitrary dictionary which should mirror the structure of config.yaml
+      in https://github.com/cloudify-cosmo/cloudify-manager-install/blob/master/config.yaml
+      It will be merged (while taking precedence) with the config as described
+      in the cloudify.nodes.CloudifyTier1Manager type in the plugin.yaml file.
+      Whenever possible the inputs in the blueprint.yaml file should be used.
+    default: {}
