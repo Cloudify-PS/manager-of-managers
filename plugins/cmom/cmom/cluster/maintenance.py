@@ -201,7 +201,7 @@ def _restore_snapshot(snapshot_id):
                 'Snapshot {0} created successfully'.format(snapshot_id)
             )
             break
-        sleep(3)
+        sleep(10)
     if not snapshot_restored:
         raise NonRecoverableError(
             'Could not restore snapshot {0}'.format(snapshot_id)
