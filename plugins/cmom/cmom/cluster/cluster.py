@@ -130,13 +130,16 @@ def clear_data(**_):
     Remove the current deployment's workdir, as it remaining here can cause
     potential problems down the road if a deployment with the same name
     will be recreated
-    """
 
+    This runs in a relationship where CM is the target and CCC the source
+    """
     ctx.logger.info(
         'Removing cluster data associated with deployment {0}'.format(
             ctx.deployment.id
         )
     )
     shutil.rmtree(workdir(), ignore_errors=True)
-    ctx.instance.runtime_properties.pop('managers')
-    ctx.instance.update()
+
+    # Clear the configuration from the cluster's runtime properties
+    ctx.source.instance.runtime_properties.pop('managers', None)
+    ctx.source.instance.update()
