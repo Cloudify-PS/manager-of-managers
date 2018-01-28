@@ -2,6 +2,7 @@
 
 import os
 import json
+from collections import Mapping
 
 from cloudify import ctx
 from cloudify.decorators import operation
@@ -13,6 +14,7 @@ INSTALL_RPM_PATH = '/tmp/cloudify-manager-install.rpm'
 CONFIG_PATH = '/etc/cloudify/config.yaml'
 
 
+# TODO: Download from Tier 2 manager via ctx.download_resource_from_manager
 def _download_rpm():
     ctx.logger.info('Downloading Cloudify Manager installation RPM...')
     execute_and_log([
@@ -27,6 +29,24 @@ def _install_rpm():
 
     os.remove(INSTALL_RPM_PATH)
     ctx.logger.info('RPM installed successfully')
+
+
+def _dict_merge(dct, merge_dct):
+    """ Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
+    updating only top-level keys, dict_merge recurses down into dicts nested
+    to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
+    ``dct``.
+    Taken from: https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
+    :param dct: dict onto which the merge is executed
+    :param merge_dct: dct merged into dct
+    :return: None
+    """
+    for k, v in merge_dct.iteritems():
+        if (k in dct and isinstance(dct[k], dict)
+                and isinstance(merge_dct[k], Mapping)):
+            _dict_merge(dct[k], merge_dct[k])
+        else:
+            dct[k] = merge_dct[k]
 
 
 def _dump_configuration():
@@ -53,12 +73,14 @@ def _update_runtime_properties():
     Update the information relevant for later clustering needs in the
     runtime properties, so that it would be easily accessible by other nodes
     """
-    ctx.instance.runtime_properties['config'] = inputs['config']
+    # Override any values in `config` with values in `additional_config`
+    config = inputs['config']
+    additional_config = inputs['additional_config']
+    _dict_merge(config, additional_config)
+
+    ctx.instance.runtime_properties['config'] = config
     ctx.instance.update()
-    ctx.logger.debug('Updated {0}: {1}'.format(
-        ctx.instance.id,
-        inputs['config']
-    ))
+    ctx.logger.debug('Updated {0}: {1}'.format(ctx.instance.id, config))
 
 
 def _remove_manager():
