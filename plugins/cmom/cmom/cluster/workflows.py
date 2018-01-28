@@ -26,8 +26,3 @@ def add_resources(ctx, **kwargs):
 @workflow
 def backup(ctx, **kwargs):
     _execute_task(ctx, 'maintenance_interface.backup', **kwargs)
-
-
-@workflow
-def restore(ctx, **kwargs):
-    _execute_task(ctx, 'maintenance_interface.restore', **kwargs)

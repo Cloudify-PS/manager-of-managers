@@ -106,7 +106,6 @@ node_types:
             blueprints:
               description: A list of blueprints to upload to the Tier 1 manager
               default: []
-        unlink: cluster.cmom.cluster.clear_data
       maintenance_interface:
         backup:
           implementation: cluster.cmom.cluster.backup
@@ -139,20 +138,11 @@ workflows:
       snapshot_id:
         default: ''
 
-  restore:
-    mapping: cluster.cmom.cluster.workflows.restore
-    parameters:
-      snapshot_path:
-        default: ''
-      old_deployment_id:
-        default: ''
-      snapshot_id:
-        default: ''
-
-
 relationships:
+
   cluster_connected_to_manager:
     derived_from: cloudify.relationships.connected_to
     target_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         preconfigure: manager.cmom.cluster.preconfigure
+        unlink: cluster.cmom.cluster.clear_data
