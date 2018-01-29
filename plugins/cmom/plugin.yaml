@@ -7,12 +7,21 @@ plugins:
   # the manager plugin is executed on the Tier 1 manager, while the cluster
   # plugin is executed on the Tier 2 manager (for operations like creating the
   # cluster and uploading resources to the cluster)
+
+  # The third definition (misc) runs on the same executor as `cluster`, but
+  # performs other (miscellaneous) functions, os opposed to directly
+  # working with the cluster
   manager:
     executor: host_agent
     source: cmom
     package_name: cloudify-manager-of-managers
 
   cluster:
+    executor: central_deployment_agent
+    source: cmom
+    package_name: cloudify-manager-of-managers
+
+  misc:
     executor: central_deployment_agent
     source: cmom
     package_name: cloudify-manager-of-managers
@@ -32,6 +41,12 @@ node_types:
               description: >
                 This is an arbitrary dictionary which should mirror the structure of
                 config.yaml in https://github.com/cloudify-cosmo/cloudify-manager-install/blob/master/config.yaml
+            additional_config:
+              description: >
+                An additional dictionary which will be merged with the `config`
+                input if provided. Also needs to mirror the structure of
+                config.yaml
+              default: {}
         configure: manager.cmom.manager.install_manager
 #        delete: manager.cmom.manager.delete  # TODO: Is this necessary?
 
