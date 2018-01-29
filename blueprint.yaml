@@ -39,7 +39,7 @@ node_templates:
             config:
               manager:
                 private_ip: { get_attribute: [ host, ip ]}
-                public_ip: { get_attribute: [ ip, floating_ip_address ] }
+                public_ip: { get_attribute: [ host, public_ip ] }
                 security:
                   ssl_enabled: true
                   admin_username: { get_input: manager_admin_username }
