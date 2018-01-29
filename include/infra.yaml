@@ -1,6 +1,6 @@
 imports:
   # Swap the imports in this file to use any other IaaS or infrastructure
-  - os_infra.yaml
+  - openstack/openstack_infra.yaml
 
 inputs:
 

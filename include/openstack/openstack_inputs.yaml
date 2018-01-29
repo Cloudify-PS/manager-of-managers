@@ -1,0 +1,37 @@
+inputs:
+  os_image:
+    description: OpenStack image name or ID to use for the new server
+  os_flavor:
+    description: OpenStack flavor name or ID to use for the new server
+  os_network:
+    description: OpenStack network name or ID the new server will be connected to
+  os_floating_network:
+    description: The name or ID of the OpenStack network to use for allocating floating ips
+  os_keypair:
+    description: OpenStack key pair name or ID of the key to associate with the new server
+  os_security_group:
+    description: The name or ID of the OpenStack security group the new server will connect to
+  os_server_group_policy:
+    description: The policy to use for the server group
+    default: affinity  # TODO: Change to soft-anti-affinity when moving to production env with v3 Keystone
+
+  os_username:
+    description: Username to authenticate to OpenStack with
+  os_password:
+    description: OpenStack password
+  os_tenant:
+    description: Name of OpenStack tenant to operate on
+  os_auth_url:
+    description: Authentication URL for KeyStone
+  os_region:
+    description: OpenStack region to use
+
+  # TODO: Uncomment when moving to production env with v3 Keystone
+#  os_project:
+#    description: Name of OpenStack project (tenant) to operate on
+#  os_project_domain:
+#    description: The name of the OpenStack project domain to use
+#    default: default
+#  os_user_domain:
+#    description: The name of the OpenStack user domain to use
+#    default: default

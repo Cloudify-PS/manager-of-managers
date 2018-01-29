@@ -1,0 +1,18 @@
+# OpenStack imports, definitions and templates
+# The API of such a file are 2 node template - `ip` and `host`, which must
+# have 2 properties: `ip` (comes by default) and `public_ip`
+
+# TODO: Handle OS Cinder volumes
+
+imports:
+  # TODO: Change to using the plugin: syntax in offline environments
+  # plugin:cloudify-openstack-plugin?version=2.5.2
+  - http://www.getcloudify.org/spec/openstack-plugin/2.5.2/plugin.yaml
+
+  - openstack_inputs.yaml
+  - openstack_common.yaml
+
+  # ** NOTE **
+  # Change to openstack_fixed_ip.yaml to use alternative mode of setting
+  # the *private* IP of the host
+  - openstack_dynamic_ip.yaml
