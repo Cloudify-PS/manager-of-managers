@@ -4,6 +4,25 @@
 # file or via the `-i` option when creating the deployment (e.g.
 # `cfy deployments create dep -b bp -i inputs.yaml -i os_password=<GUESS_ME>`)
 
+#####################################################################
+# GENERAL INPUTS
+#####################################################################
+
+# User name used when SSH-ing into the manager machines
+ssh_user: centos
+
+# Path to the private key for the keypair whose name is provided by
+# "keypair_name". Path must be accessible from within the Tier 2 manager
+ssh_private_key_path: /etc/cloudify/ssh_key
+
+# The CA certificate + key used to sign any auto generated certificates
+# (internal and external) - these paths should be relative to the blueprint
+ca_cert: files/ca_cert.pem
+ca_key: files/ca_key.pem
+
+#####################################################################
+# OPENSTACK INPUTS
+#####################################################################
 
 # OpenStack image name or ID to use for the new server
 os_image: <OPENSTACK_IMAGE_ID>
@@ -39,19 +58,6 @@ os_auth_url: <OPENSTACK_AUTH_URL>
 
 # OpenStack region to use
 os_region: <OPENSTACK_REGION>
-
-# User name used when SSH-ing into the manager machines
-ssh_user: centos
-
-# Path to the private key for the keypair whose name is provided by
-# "keypair_name". Path must be accessible from within the orchestrating machine.
-ssh_private_key_path: /etc/cloudify/ssh_key
-
-# The CA certificate + key used to sign any auto generated certificates
-# (internal or external)
-ca_cert: files/ca_cert.pem
-ca_key: files/ca_key.pem
-
 
 #####################################################################
 # ADDITIONAL RESOURCES
@@ -107,3 +113,42 @@ additional_config:
       level: DEBUG
   mgmtworker:
     log_level: DEBUG
+
+
+#####################################################################
+# UPGRADE INPUTS
+#####################################################################
+
+# These inputs are only relevant when upgrading. Use them only when
+# installing a new deployment to which you wish to transfer data/agents from
+# an old deployment
+
+# Should the newly installed Cloudify Manager be restored from a previous
+# installation. Must be used in conjunction with some of the other inputs
+# below. See plugin.yaml for more details
+restore: false
+
+# Only relevant if `restore` is set to true!
+# Must be used in conjunction with `old_deployment_id` (and optionally
+# with `snapshot_id`).  If set to true, a snapshot will be created on the old
+# deployment (based on `old_deployment_id` and, if passed, on
+# `snapshot_id`), and it will be used in the restore workflow
+backup: false
+
+# A local (relative to the Tier 2 manager) path to a snapshot that should be
+# used. Mutually exclusive with `old_deployment_id` and `snapshot_id`
+snapshot_path: ''
+
+# The ID of the previous deployment which was used to control the Tier 1
+# managers. If the `backup` workflow was used with default values there will
+# be a special folder with all the snapshots from the Tier 1 managers. If the
+# `backup` input is set to `false` `snapshot_id` must be provided as well
+old_deployment_id: ''
+
+# The ID of the snapshot to use. This is only relevant if `old_deployment_id`
+# is provided as well
+snapshot_id: ''
+
+# If set to `true`, an `install_new_agents` command will be executed after
+# the restore is complete
+transfer_agents: true
