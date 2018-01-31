@@ -25,7 +25,7 @@ inputs:
       Where:
         * WAGON is either a URL of a Cloudify Plugin (e.g.
           http://repository.cloudifysource.org/cloudify/wagons/cloudify-openstack-plugin/2.0.1/cloudify_openstack_plugin-2.0.1-py27-none-linux_x86_64-centos-Core.wgn),
-          or a local (relative to the master manager) path to such wagon (required)
+          or a local (relative to the Tier 2 manager) path to such wagon (required)
         * YAML is the plugin's plugin.yaml file - again, either URL or local
           path (required)
         * TENANT is the tenant to which the plugin will be uploaded (the tenant

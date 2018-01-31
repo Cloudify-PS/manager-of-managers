@@ -26,3 +26,21 @@ inputs:
       in the cloudify.nodes.CloudifyTier1Manager type in the plugin.yaml file.
       Whenever possible the inputs in the blueprint.yaml file should be used.
     default: {}
+
+  # **NOTE** The below inputs are paths relative to the blueprint.yaml file!
+  ca_cert:
+    description: |
+      The CA certificate used to sign any auto generated certificates
+      (internal or external). This is the only certificate actually present on
+      the agent machines
+    default: { get_secret: ca_cert }
+  ca_key:
+    description: The key for the above certificate
+    default: { get_secret: ca_key }
+
+  ssh_user:
+    description: User name used when SSH-ing into the manager machines
+  ssh_private_key_path:
+    description: |
+      Path to the private key for the keypair whose name is provided by "keypair_name".
+      Path must be accessible from within the orchestrating machine.
