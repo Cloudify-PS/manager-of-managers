@@ -4,8 +4,9 @@ import shutil
 
 from cloudify import ctx
 from cloudify.decorators import operation
-from cloudify.exceptions import RecoverableError
 from cloudify.state import ctx_parameters as inputs
+
+from cloudify_rest_client.exceptions import CloudifyClientError
 
 from ..common import download_certificate, workdir
 
@@ -140,16 +141,14 @@ def clear_data(**_):
         )
     )
     shutil.rmtree(workdir(), ignore_errors=True)
-
     try:
         # Clear the configuration from the cluster's runtime properties
         ctx.source.instance.runtime_properties.pop('managers', None)
         ctx.source.instance.update()
-    except RecoverableError as e:
+    except CloudifyClientError as e:
         # Because this node can have several managers attached to it, and
         # because this operation will be called for each one, it is expected
         # that all except one will fail to update the runtime props, but that's
         # normal
-        if '409' not in e.message:
+        if e.status_code != 409:
             raise
-
