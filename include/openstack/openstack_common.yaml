@@ -10,6 +10,30 @@ dsl_definitions:
 #    user_domain_name: { get_input: os_user_domain }
 
 
+node_types:
+  cloudify.opesntack.nodes.Host:
+    derived_from: cloudify.openstack.nodes.Server
+    properties:
+      openstack_config:
+        default: *openstack_configuration
+      agent_config:
+        default:
+          user: { get_input: ssh_user }
+          key: { get_property: [ os_keypair, private_key_path ] }
+      image:
+        default: { get_input: os_image }
+      flavor:
+        default: { get_input: os_flavor }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: openstack.nova_plugin.server.create
+          inputs:
+            args:
+              default:
+                security_groups: [{ get_attribute: [ os_security_group, external_name ]}]
+
+
 node_templates:
   os_security_group:
     type: cloudify.openstack.nodes.SecurityGroup
@@ -38,34 +62,3 @@ node_templates:
     properties:
       openstack_config: *openstack_configuration
       policy: { get_input: os_server_group_policy }
-
-  # Note here that the `ip` node template and the  `server_connected_to_ip`
-  # relationships are provided in another file. This is in order to allow
-  # using both dynamic and fixed IPs
-  host:
-    type: cloudify.openstack.nodes.Server
-    properties:
-      openstack_config: *openstack_configuration
-      agent_config:
-        user: { get_input: ssh_user }
-        key: { get_property: [ os_keypair, private_key_path ] }
-      image: { get_input: os_image }
-      flavor: { get_input: os_flavor }
-    relationships:
-      - type: cloudify.openstack.server_connected_to_keypair
-        target: os_keypair
-      - type: cloudify.openstack.server_connected_to_ip
-        target: ip
-      - type: cloudify.openstack.server_connected_to_security_group
-        target: os_security_group
-      - type: cloudify.openstack.server_connected_to_server_group
-        target: os_server_group
-      - type: cloudify.relationships.connected_to
-        target: os_network
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              security_groups: [{ get_attribute: [ os_security_group, external_name ]}]
-
