@@ -7,6 +7,7 @@ from collections import Mapping
 from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
+from cloudify.manager import download_resource_from_manager
 
 from ..common import execute_and_log, download_certificate
 
@@ -14,12 +15,13 @@ INSTALL_RPM_PATH = '/tmp/cloudify-manager-install.rpm'
 CONFIG_PATH = '/etc/cloudify/config.yaml'
 
 
-# TODO: Download from Tier 2 manager via ctx.download_resource_from_manager
 def _download_rpm():
     ctx.logger.info('Downloading Cloudify Manager installation RPM...')
-    execute_and_log([
-        'curl', inputs['install_rpm_url'], '-o', INSTALL_RPM_PATH
-    ])
+    download_resource_from_manager(
+        resource_path=inputs['install_rpm_path'],
+        logger=ctx.logger,
+        target_path=INSTALL_RPM_PATH
+    )
     ctx.logger.info('Install RPM downloaded successfully')
 
 
