@@ -1,8 +1,11 @@
 inputs:
-  install_rpm_url:
-    description: The URL of the Cloudify Manager installation RPM
+  install_rpm_path:
+    description: >
+      The path to the install RPM which will be used to
+      install the manager. This path is relative to the Tier 2
+      manager's fileserver (i.e. /opt/manager/resources/PATH)
     type: string
-    default: { get_secret: install_rpm_url }
+    default: { get_secret: install_rpm_path }
   manager_admin_username:
     description: |
       The username of the Cloudify Manager admin user. This shouldn't usually be modified

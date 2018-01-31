@@ -20,8 +20,6 @@ imports:
   # Manager of Managers plugin
   - plugins/cmom/plugin.yaml
 
-  # TODO: Need to download the RPM locally and create a small webserver to serve it to the other managers
-  # TODO: Consider creating a manager config datatype
   # TODO: Implement solution for scenarios where the IPs are not provided by OS
 
 node_templates:
@@ -35,7 +33,7 @@ node_templates:
       cloudify.interfaces.lifecycle:
         create:
           inputs:
-            install_rpm_url: { get_input: install_rpm_url }
+            install_rpm_path: { get_input: install_rpm_path }
             config:
               manager:
                 private_ip: { get_attribute: [ host, ip ]}

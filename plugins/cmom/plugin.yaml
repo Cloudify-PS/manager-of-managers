@@ -35,8 +35,11 @@ node_types:
         create:
           implementation: manager.cmom.manager.install_rpm
           inputs:
-            install_rpm_url:
-              description: The URL to the install RPM which will be used to install the manager
+            install_rpm_path:
+              description: >
+                The path to the install RPM which will be used to
+                install the manager. This path is relative to the Tier 2
+                manager's fileserver (i.e. /opt/manager/resources/PATH)
             config:
               description: >
                 This is an arbitrary dictionary which should mirror the structure of
@@ -54,6 +57,7 @@ node_types:
     derived_from: cloudify.nodes.Root
     interfaces:
       cloudify.interfaces.lifecycle:
+        create: misc.cmom.misc.setup_globals
         configure:
           implementation: cluster.cmom.cluster.start_cluster
           inputs:
