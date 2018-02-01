@@ -6,8 +6,6 @@ from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
 
-from cloudify_rest_client.exceptions import CloudifyClientError
-
 from ..common import download_certificate, workdir
 
 from .utils import execute_and_log, use_profile
@@ -132,8 +130,6 @@ def clear_data(**_):
     Remove the current deployment's workdir, as it remaining here can cause
     potential problems down the road if a deployment with the same name
     will be recreated
-
-    This runs in a relationship where CM is the target and CCC the source
     """
     ctx.logger.info(
         'Removing cluster data associated with deployment {0}'.format(
@@ -141,14 +137,7 @@ def clear_data(**_):
         )
     )
     shutil.rmtree(workdir(), ignore_errors=True)
-    try:
-        # Clear the configuration from the cluster's runtime properties
-        ctx.source.instance.runtime_properties.pop('managers', None)
-        ctx.source.instance.update()
-    except CloudifyClientError as e:
-        # Because this node can have several managers attached to it, and
-        # because this operation will be called for each one, it is expected
-        # that all except one will fail to update the runtime props, but that's
-        # normal
-        if e.status_code != 409:
-            raise
+
+    # Clear the configuration from the cluster's runtime properties
+    ctx.instance.runtime_properties.pop('managers', None)
+    ctx.instance.update()
