@@ -1,8 +1,8 @@
 inputs:
   os_subnet:
     description: >
-      OpenStack image name or ID to use for subnet that's connected to the
-      network that is used
+      OpenStack name or ID of the subnet that's connected to the
+      network that is to be used by the manager
 
 dsl_definitions:
   openstack_configuration: &openstack_configuration

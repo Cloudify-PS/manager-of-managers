@@ -36,8 +36,13 @@ os_network: <OPENSTACK_NETWORK_NAME/ID>
 # OpenStack key pair name or ID of the key to associate with the new server
 os_keypair: <OPENSTACK_KEPAIR_NAME/ID>
 
-# The name or ID of the OpenStack network to use for allocating floating ips
+# The name or ID of the OpenStack network to use for allocating floating ips.
+# **NOTE** Only relevant when working with the floating IP setup
 os_floating_network: <OPENSTACK_EXTERNAL_NETWORK_NAME/ID>
+
+# The name or ID of the OpenStack subnet to use.
+# **NOTE** Only relevant when working with the private IP setup
+os_subnet: <OPENSTACK_SUBNET_NAME/ID>
 
 # The name or ID of the OpenStack security group the new server will connect to
 os_security_group: <OPENSTACK_SECURITY_GROUP_NAME/ID>
@@ -58,6 +63,10 @@ os_auth_url: <OPENSTACK_AUTH_URL>
 
 # OpenStack region to use
 os_region: <OPENSTACK_REGION>
+
+# An OpenStack block device mapping (v2) - this is a list of volumes as
+# defined by the API here: https://docs.openstack.org/nova/pike/user/block-device-mapping.html
+os_device_mapping: <LIST_OF_OPENSTACK_BLOCK_DEVICE_MAPPINGS>
 
 #####################################################################
 # ADDITIONAL RESOURCES

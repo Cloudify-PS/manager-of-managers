@@ -134,15 +134,16 @@ These are:
 1. The admin password to be used by the Tier 1 managers -
 `manager_admin_password`.
 
-### IaaS inputs
+### OpenStack inputs
 
 Currently only Openstack is supported as the platform for this
-blueprint. Its inputs are:
+blueprint. Implementations for other IaaSes will follow.
+
+#### Common OS inputs
 
 * `os_image` - OpenStack image name or ID to use for the new server
 * `os_flavor` - OpenStack flavor name or ID to use for the new server
 * `os_network` - OpenStack network name or ID the new server will be connected to
-* `os_floating_network` - The name or ID of the OpenStack network to use for allocating floating ips
 * `os_keypair` - OpenStack key pair name or ID of the key to associate with the new server
 * `os_security_group` - The name or ID of the OpenStack security group the new server will connect to
 * `os_server_group_policy` - The policy to use for the server group
@@ -151,11 +152,56 @@ blueprint. Its inputs are:
 * `os_tenant` - Name of OpenStack tenant to operate on
 * `os_auth_url` - Authentication URL for KeyStone
 
+#### Defining the manager's public IP
+
+There are currently 2 supported ways to assign the manager's public IP.
+To toggle between the different modes you'll need to comment out one of
+the lines in [`openstack_infra`](include/openstack/openstack_infra.yaml) -
+only one of [`openstack_private_ip.yaml`](include/openstack/openstack_private_ip.yaml)
+or [`openstack_floating_ip.yaml`](include/openstack/openstack_floating_ip.yaml)
+needs to be imported.
+
+The two modes are:
+1. Using the FloatingIP mechanism. This requires providing a special
+input:
+* `os_floating_network` - The name or ID of the OpenStack network to use
+for allocating floating IPs
+
+2. Using only an internal network, without a floating IP. This requires
+creating a new port, which is assumed to be connected to an existing
+subnet; thus a special input is needed:
+* `os_subnet` - OpenStack name or ID of the subnet that's
+connected to the network that is to be used by the manager
+
+#### KeyStone v3 inputs
+
 The following inputs are only relevant in KeyStone v3 environments:
 * `os_region` - OpenStack region to use
 * `os_project` - Name of OpenStack project (tenant) to operate on
 * `os_project_domain` - The name of the OpenStack project domain to use
 * `os_user_domain` - The name of the OpenStack user domain to use
+
+#### Block storage devices
+
+When working with block storage devices (e.g. Cinder volumes) there
+is a special input that needs to be provided:
+* `os_device_mapping` - this is a list of volumes as defined by the API
+[here](https://docs.openstack.org/nova/pike/user/block-device-mapping.html).
+An example input would look like this:
+```
+os_device_mapping:
+  - boot_index: "0"
+    uuid: "41a1f177-1fb0-4708-a5f1-64f4c88dfec5"
+    volume_size: 30
+    source_type: image
+    destination_type: volume
+    delete_on_termination: true
+```
+Where `uuid` is the UUID of the OS image that should be used when
+creating the volume.
+
+> Note: When using the `os_device_mapping` input, the `os_image` input
+> should be left empty.
 
 Other potential inputs (for example, with subnet names, CIDRs etc.)
 might be added later.

@@ -32,6 +32,7 @@ node_types:
             args:
               default:
                 security_groups: [{ get_attribute: [ os_security_group, external_name ]}]
+                block_device_mapping_v2: { get_input: os_device_mapping }
 
 
 node_templates:

@@ -24,6 +24,12 @@ inputs:
   os_region:
     description: OpenStack region to use
 
+  os_device_mapping:
+    description: >
+      An OpenStack block device mapping (v2) - this is a list of volumes as
+      defined by the API here: https://docs.openstack.org/nova/pike/user/block-device-mapping.html
+    default: []
+
   # TODO: Uncomment when moving to production env with v3 Keystone
 #  os_project:
 #    description: Name of OpenStack project (tenant) to operate on
