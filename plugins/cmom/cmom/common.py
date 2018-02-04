@@ -5,6 +5,7 @@ from cloudify import ctx
 from cloudify.exceptions import CommandExecutionException
 
 CERTIFICATES = 'certificates'
+DEFAULT_TENANT = 'default_tenant'
 
 
 def execute_and_log(cmd,

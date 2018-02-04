@@ -4,6 +4,7 @@ from cloudify.state import ctx_parameters as inputs
 from cloudify.exceptions import CommandExecutionException
 
 from .utils import execute_and_log
+from ..common import DEFAULT_TENANT
 
 
 def _add_tenant_and_visibility(cmd, resource):
@@ -30,6 +31,10 @@ def _create_tenants():
     for tenant in tenants:
         cmd = ['cfy', 'tenants', 'create', tenant]
         _try_running_command(cmd, 'Could not create tenant {0}'.format(tenant))
+
+
+def _switch_tenant(tenant):
+    execute_and_log(['cfy', 'profiles', 'set', '-t', tenant])
 
 
 def _upload_plugins():
@@ -90,11 +95,21 @@ Expected format is:
         else:
             cmd += ['-f', secret['file']]
 
-        cmd = _add_tenant_and_visibility(cmd, secret)
-        _try_running_command(
-            cmd,
-            'Could not create secret {0}'.format(secret['key'])
-        )
+        # The secrets' CLI command doesn't have a `-t` flag, so we handle it
+        # separately here by actually switching to the tenant
+        tenant = secret.pop('tenant', None)
+        try:
+            if tenant:
+                _switch_tenant(tenant)
+
+            cmd = _add_tenant_and_visibility(cmd, secret)
+            _try_running_command(
+                cmd,
+                'Could not create secret {0}'.format(secret['key'])
+            )
+        finally:
+            if tenant:
+                _switch_tenant(DEFAULT_TENANT)
 
 
 def _upload_blueprints():

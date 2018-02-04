@@ -6,7 +6,7 @@ from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
 
-from ..common import download_certificate, workdir
+from ..common import download_certificate, workdir, DEFAULT_TENANT
 
 from .utils import execute_and_log, use_profile
 from .maintenance import restore, backup, UpgradeConfig
@@ -68,7 +68,7 @@ def _create_cli_profiles():
             'cfy', 'profiles', 'use', public_ip,
             '-u', security['admin_username'],
             '-p', security['admin_password'],
-            '-t', 'default_tenant',
+            '-t', DEFAULT_TENANT,
             '-c', ca_cert, '--ssl'
         ])
 
