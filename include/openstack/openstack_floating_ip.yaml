@@ -1,3 +1,7 @@
+inputs:
+  os_floating_network:
+    description: The name or ID of the OpenStack network to use for allocating floating ips
+
 dsl_definitions:
   openstack_configuration: &openstack_configuration
     username: { get_input: os_username }

@@ -15,4 +15,5 @@ imports:
   # ** NOTE **
   # Change to openstack_fixed_ip.yaml to use alternative mode of setting
   # the *private* IP of the host
-  - openstack_dynamic_ip.yaml
+  - openstack_private_ip.yaml
+#  - openstack_floating_ip.yaml

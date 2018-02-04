@@ -5,8 +5,6 @@ inputs:
     description: OpenStack flavor name or ID to use for the new server
   os_network:
     description: OpenStack network name or ID the new server will be connected to
-  os_floating_network:
-    description: The name or ID of the OpenStack network to use for allocating floating ips
   os_keypair:
     description: OpenStack key pair name or ID of the key to associate with the new server
   os_security_group:

@@ -1,0 +1,63 @@
+inputs:
+  os_subnet:
+    description: >
+      OpenStack image name or ID to use for subnet that's connected to the
+      network that is used
+
+dsl_definitions:
+  openstack_configuration: &openstack_configuration
+    username: { get_input: os_username }
+    password: { get_input: os_password }
+    tenant_name: { get_input: os_tenant }
+    auth_url: { get_input: os_auth_url }
+    region: { get_input: os_region }
+
+
+node_templates:
+  os_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      openstack_config: *openstack_configuration
+      use_external_resource: true
+      resource_id: { get_input: os_subnet }
+    relationships:
+      - target: os_network
+        type: cloudify.relationships.contained_in
+
+  ip:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      openstack_config: *openstack_configuration
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: os_network
+    - type: cloudify.openstack.port_connected_to_subnet
+      target: os_subnet
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: os_security_group
+
+  host:
+    type: cloudify.opesntack.nodes.Host
+    relationships:
+      - type: cloudify.openstack.server_connected_to_keypair
+        target: os_keypair
+      - type: cloudify.openstack.server_connected_to_ip
+        target: ip
+      - type: cloudify.openstack.server_connected_to_security_group
+        target: os_security_group
+      - type: cloudify.openstack.server_connected_to_server_group
+        target: os_server_group
+      # We're doing "contained_in" here, in order to take advantage of the
+      # scaling semantics. We'll need both "host" and "ip" to be contained
+      # in the same node
+      - type: cloudify.relationships.contained_in
+        target: os_network
+
+
+relationships:
+
+  cloudify.openstack.server_connected_to_ip:
+    derived_from: cloudify.openstack.server_connected_to_port
+    target_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure: misc.cmom.misc.set_ip_from_port
