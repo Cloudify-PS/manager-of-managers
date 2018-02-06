@@ -1,0 +1,113 @@
+inputs:
+  os_subnet:
+    description: >
+      OpenStack name or ID of the subnet that's connected to the
+      network that is to be used by the manager
+  resource_pool:
+    description: >
+      A list of resource from which the IP addresses and the hostname should
+      be chose. The format should be as follows:
+      resource_pool:
+        - ip_address: <IP_ADDRESS>
+          hostname: <HOSTNAME>
+
+dsl_definitions:
+  openstack_configuration: &openstack_configuration
+    username: { get_input: os_username }
+    password: { get_input: os_password }
+    tenant_name: { get_input: os_tenant }
+    auth_url: { get_input: os_auth_url }
+    region: { get_input: os_region }
+
+
+node_types:
+  cloudify.nodes.ResourcePool:
+    derived_from: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: misc.cmom.misc.setup_resource_pool
+          inputs:
+            resource_pool:
+              default: { get_input: resource_pool }
+
+  cloudify.nodes.ScalingResource:
+    derived_from: cloudify.nodes.Root
+
+
+node_templates:
+  resource_pool:
+    type: cloudify.nodes.ResourcePool
+
+  resource:
+    type: cloudify.nodes.ScalingResource
+    relationships:
+    # This is here just for scaling's sake
+    - type: cloudify.relationships.contained_in
+      target: os_network
+    - type: resource_connected_to_resource_pool
+      target: resource_pool
+
+  os_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      openstack_config: *openstack_configuration
+      use_external_resource: true
+      resource_id: { get_input: os_subnet }
+    relationships:
+      - target: os_network
+        type: cloudify.relationships.contained_in
+
+  os_port:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      openstack_config: *openstack_configuration
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: openstack.neutron_plugin.port.create
+          inputs:
+            args:
+              fixed_ips: { get_attribute: [ resource, fixed_ip ] }
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: os_network
+    - type: cloudify.openstack.port_connected_to_subnet
+      target: os_subnet
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: os_security_group
+    - type: cloudify.relationships.depends_on
+      target: resource
+
+  host:
+    type: cloudify.opesntack.nodes.Host
+    relationships:
+      - type: cloudify.openstack.server_connected_to_keypair
+        target: os_keypair
+      - type: server_connected_to_port
+        target: os_port
+      - type: cloudify.openstack.server_connected_to_security_group
+        target: os_security_group
+      - type: cloudify.openstack.server_connected_to_server_group
+        target: os_server_group
+      # We're doing "contained_in" here, in order to take advantage of the
+      # scaling semantics. We need all group members to be contained
+      # in the same node
+      - type: cloudify.relationships.contained_in
+        target: os_network
+      - type: cloudify.relationships.depends_on
+        target: resource
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: openstack.nova_plugin.server.create
+          inputs:
+            args:
+              security_groups: [{ get_attribute: [ os_security_group, external_name ]}]
+              block_device_mapping_v2: { get_input: os_device_mapping }
+              name: { get_attribute: [ resource, fixed_hostname ] }
+
+groups:
+
+  manager_group:
+    members: [ os_port, resource, host, cloudify_manager ]

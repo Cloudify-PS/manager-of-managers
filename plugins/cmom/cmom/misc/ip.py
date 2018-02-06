@@ -19,27 +19,54 @@ def set_floating_ip_on_host(**_):
     ))
 
 
+def _get_ip_address_and_hostname():
+    """
+    Get IP address and hostname from their respective resource pools and
+    update the resource_pool object's runtime properties
+    :return: A tuple (ip_address, hostname)
+    """
+    resource_pool = ctx.target.instance.runtime_properties['resource_pool']
+    resource = resource_pool.pop(0)
+    ctx.target.instance.runtime_properties['resource_pool'] = resource_pool
+    ctx.target.instance.update()
+    return resource['ip_address'], resource['hostname']
+
+
 @operation
-def setup_ip_pool(**_):
+def get_resources_from_resource_pool(**_):
     """
-    Use this operation when creating the IP pool
+    Get one of each IP address and hostname from the resource pool and keep
+    them in the `resource` object's runtime props
 
-    Will create the initial `next_ip` runtime prop which will be updated
-    further by subsequent calls to `set_ip_from_port`
+    This operation runs in a relationship where `resource` is the source
+    and `resource_pool` is the target
     """
+    ip_address, fixed_hostname = _get_ip_address_and_hostname()
 
-    # `allowed_address_pairs` expects a list of dicts that looks like this:
-    # [{"ip_address": "10.3.3.3"}, {"ip_address": "10.3.3.4"}]
-    ip_pool = [{'ip_address': ip} for ip in inputs['ip_pool']]
-    ctx.instance.runtime_properties['ip_pool'] = ip_pool
-    ctx.logger.info('Setting IP pool to: {0}'.format(ip_pool))
-
-    allocation_pools = [{'start': ip, 'end': ip} for ip in inputs['ip_pool']]
-    ctx.instance.runtime_properties['allocation_pools'] = allocation_pools
-    ctx.logger.info('Setting subnet IP allocation pools to: {0}'.format(
-        allocation_pools
+    ctx.logger.info('Setting IP `{0}` for instance `{1}`'.format(
+        ip_address, ctx.source.instance.id
     ))
+    ctx.logger.info('Setting hostname `{0}` for instance `{1}`'.format(
+        fixed_hostname, ctx.source.instance.id
+    ))
+
+    # The neutron plugin expects a list of dicts with a `ip_address` key
+    fixed_ip = [{'ip_address': ip_address}]
+    ctx.source.instance.runtime_properties['fixed_ip'] = fixed_ip
+    ctx.source.instance.runtime_properties['fixed_hostname'] = fixed_hostname
+    ctx.source.instance.update()
+
+
+@operation
+def setup_resource_pool(**_):
+    """ Create the resource pool from the user's inputs """
+
+    ctx.instance.runtime_properties['resource_pool'] = inputs['resource_pool']
     ctx.instance.update()
+
+    ctx.logger.info(
+        'Setting resource pool: {0}'.format(inputs['resource_pool'])
+    )
 
 
 @operation
