@@ -9,10 +9,12 @@ imports:
 
   - inputs.yaml
   - common.yaml
+  - relationships.yaml
 
   # ** IMPORTANT **
   # Comment out one of the following two lines to work in your preferred mode:
   # either with a floating IP attached to the managers or only with a private
   # network (more info available in the README file)
-  - private_ip.yaml
+#  - private_ip.yaml
 #  - floating_ip.yaml
+  - private_fixed_ip.yaml
