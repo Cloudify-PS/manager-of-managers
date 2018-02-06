@@ -156,9 +156,9 @@ blueprint. Implementations for other IaaSes will follow.
 
 There are currently 2 supported ways to assign the manager's public IP.
 To toggle between the different modes you'll need to comment out one of
-the lines in [`openstack_infra`](include/openstack/openstack_infra.yaml) -
-only one of [`openstack_private_ip.yaml`](include/openstack/openstack_private_ip.yaml)
-or [`openstack_floating_ip.yaml`](include/openstack/openstack_floating_ip.yaml)
+the lines in [`openstack_infra`](include/openstack/infra.yaml) -
+only one of [`openstack_private_ip.yaml`](include/openstack/private_ip.yaml)
+or [`openstack_floating_ip.yaml`](include/openstack/floating_ip.yaml)
 needs to be imported.
 
 The two modes are:

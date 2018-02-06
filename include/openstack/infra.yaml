@@ -7,12 +7,12 @@ imports:
   # plugin:cloudify-openstack-plugin?version=2.5.2
   - http://www.getcloudify.org/spec/openstack-plugin/2.5.2/plugin.yaml
 
-  - openstack_inputs.yaml
-  - openstack_common.yaml
+  - inputs.yaml
+  - common.yaml
 
   # ** IMPORTANT **
   # Comment out one of the following two lines to work in your preferred mode:
   # either with a floating IP attached to the managers or only with a private
   # network (more info available in the README file)
-  - openstack_private_ip.yaml
-#  - openstack_floating_ip.yaml
+  - private_ip.yaml
+#  - floating_ip.yaml

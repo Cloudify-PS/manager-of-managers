@@ -9,7 +9,7 @@ imports:
   - http://www.getcloudify.org/spec/cloudify/4.3.dev1/types.yaml
 
   # Swap the imports in this file to use any other IaaS or infrastructure
-  - include/openstack/openstack_infra.yaml
+  - include/openstack/infra.yaml
 
   # Other inputs
   - include/general_inputs.yaml
