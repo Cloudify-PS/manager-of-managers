@@ -154,14 +154,18 @@ blueprint. Implementations for other IaaSes will follow.
 
 #### Defining the manager's public IP
 
-There are currently 2 supported ways to assign the manager's public IP.
-To toggle between the different modes you'll need to comment out one of
-the lines in [`openstack_infra`](include/openstack/infra.yaml) -
-only one of [`openstack_private_ip.yaml`](include/openstack/private_ip.yaml)
-or [`openstack_floating_ip.yaml`](include/openstack/floating_ip.yaml)
+There are currently 3 supported ways to assign the manager's IP.
+To toggle between the different modes you'll need to leave only one of
+the lines in [`infra`](include/openstack/infra.yaml) uncommented -
+[`private_ip.yaml`](include/openstack/private_ip.yaml),
+[`floating_ip.yaml`](include/openstack/floating_ip.yaml) or
+[`private_fixed_ip.yaml`](include/openstack/private_fixed_ip.yaml)
 needs to be imported.
 
-The two modes are:
+> **Important**: only *one* of the files mentioned above needs to be
+> imported, otherwise the blueprint will not work.
+
+The 3 modes are:
 1. Using the FloatingIP mechanism. This requires providing a special
 input:
 * `os_floating_network` - The name or ID of the OpenStack network to use
@@ -172,6 +176,22 @@ creating a new port, which is assumed to be connected to an existing
 subnet; thus a special input is needed:
 * `os_subnet` - OpenStack name or ID of the subnet that's
 connected to the network that is to be used by the manager
+
+3. Using a known in advance resource pool of IPs and hostnames. Like
+in the previous section, this requires creating a new port. This
+method also creates a "resource pool" object, that holds a list of
+resources and allocates them as the need arises. The inputs for this
+mode are:
+* `os_subnet` - Like in the above mode
+* `resource_pool` - A list of resources from which the IP addresses and
+the hostnames should be chosen. The format should be as follows:
+```
+resource_pool:
+    - ip_address: <IP_ADDRESS_1>
+      hostname: <HOSTNAME_1>
+    - ip_address: <IP_ADDRESS_2>
+      hostname: <HOSTNAME_2>
+```
 
 #### KeyStone v3 inputs
 

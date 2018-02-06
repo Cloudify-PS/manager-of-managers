@@ -66,6 +66,7 @@ os_region: <OPENSTACK_REGION>
 
 # An OpenStack block device mapping (v2) - this is a list of volumes as
 # defined by the API here: https://docs.openstack.org/nova/pike/user/block-device-mapping.html
+# You can see an example in the readme file
 os_device_mapping: <LIST_OF_OPENSTACK_BLOCK_DEVICE_MAPPINGS>
 
 #####################################################################
@@ -161,3 +162,16 @@ snapshot_id: ''
 # If set to `true`, an `install_new_agents` command will be executed after
 # the restore is complete
 transfer_agents: true
+
+
+#####################################################################
+# RESOURCE POOL INPUTS
+#####################################################################
+# A list of resources from which the IP addresses and
+# the hostnames should be chosen. The format should be as follows:
+# resource_pool:
+#     - ip_address: <IP_ADDRESS_1>
+#       hostname: <HOSTNAME_1>
+#     - ip_address: <IP_ADDRESS_2>
+#       hostname: <HOSTNAME_2>
+resource_pool: []

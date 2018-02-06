@@ -5,8 +5,8 @@ inputs:
       network that is to be used by the manager
   resource_pool:
     description: >
-      A list of resource from which the IP addresses and the hostname should
-      be chose. The format should be as follows:
+      A list of resources from which the IP addresses and the hostnames should
+      be chosen. The format should be as follows:
       resource_pool:
         - ip_address: <IP_ADDRESS>
           hostname: <HOSTNAME>
