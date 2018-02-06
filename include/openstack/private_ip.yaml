@@ -24,7 +24,7 @@ node_templates:
       - target: os_network
         type: cloudify.relationships.contained_in
 
-  ip:
+  os_port:
     type: cloudify.openstack.nodes.Port
     properties:
       openstack_config: *openstack_configuration
@@ -41,23 +41,19 @@ node_templates:
     relationships:
       - type: cloudify.openstack.server_connected_to_keypair
         target: os_keypair
-      - type: cloudify.openstack.server_connected_to_ip
-        target: ip
+      - type: server_connected_to_port
+        target: os_port
       - type: cloudify.openstack.server_connected_to_security_group
         target: os_security_group
       - type: cloudify.openstack.server_connected_to_server_group
         target: os_server_group
       # We're doing "contained_in" here, in order to take advantage of the
-      # scaling semantics. We'll need both "host" and "ip" to be contained
+      # scaling semantics. We'll need both "host" and "os_port" to be contained
       # in the same node
       - type: cloudify.relationships.contained_in
         target: os_network
 
+groups:
 
-relationships:
-
-  cloudify.openstack.server_connected_to_ip:
-    derived_from: cloudify.openstack.server_connected_to_port
-    target_interfaces:
-      cloudify.interfaces.relationship_lifecycle:
-        preconfigure: misc.cmom.misc.set_ip_from_port
+  manager_group:
+    members: [ os_port, host, cloudify_manager ]

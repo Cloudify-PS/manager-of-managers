@@ -21,6 +21,7 @@ imports:
   - plugins/cmom/plugin.yaml
 
   # TODO: Implement solution for scenarios where the IPs are not provided by OS
+  # TODO: Add an auto-heal policy
 
 node_templates:
 
@@ -71,11 +72,6 @@ node_templates:
             plugins: { get_input: plugins }
             secrets: { get_input: secrets }
             blueprints: { get_input: blueprints }
-
-groups:
-  manager_group:
-    members: [ ip, host, cloudify_manager ]
-    # TODO: Add an auto-heal policy
 
 policies:
   scale:

@@ -12,7 +12,7 @@ dsl_definitions:
 
 node_templates:
 
-  ip:
+  os_floating_ip:
     type: cloudify.openstack.nodes.FloatingIP
     properties:
       openstack_config: *openstack_configuration
@@ -24,8 +24,8 @@ node_templates:
     relationships:
       - type: cloudify.openstack.server_connected_to_keypair
         target: os_keypair
-      - type: cloudify.openstack.server_connected_to_ip
-        target: ip
+      - type: server_connected_to_floating_ip
+        target: os_floating_ip
       - type: cloudify.openstack.server_connected_to_security_group
         target: os_security_group
       - type: cloudify.openstack.server_connected_to_server_group
@@ -33,10 +33,7 @@ node_templates:
       - type: cloudify.relationships.connected_to
         target: os_network
 
-relationships:
+groups:
 
-  cloudify.openstack.server_connected_to_ip:
-    derived_from: cloudify.openstack.server_connected_to_floating_ip
-    target_interfaces:
-      cloudify.interfaces.relationship_lifecycle:
-        preconfigure: misc.cmom.misc.set_floating_ip_on_host
+  manager_group:
+    members: [ os_floating_ip, host, cloudify_manager ]
