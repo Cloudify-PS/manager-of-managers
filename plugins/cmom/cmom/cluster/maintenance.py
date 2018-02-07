@@ -5,7 +5,7 @@ from datetime import datetime
 from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
-from cloudify.exceptions import NonRecoverableError
+from cloudify.exceptions import NonRecoverableError, CommandExecutionException
 
 from ..common import workdir
 from .utils import execute_and_log
@@ -166,7 +166,13 @@ def restore(config):
     _restore_snapshot(RESTORE_SNAP_ID)
 
     if config.transfer_agents:
-        execute_and_log(['cfy', 'agents', 'install'])
+        try:
+            execute_and_log(['cfy', 'agents', 'install'])
+        except CommandExecutionException as e:
+            # If we try to run `cfy agents install` but there are no
+            # deployments, we can just ignore it
+            if 'There are no deployments installed' not in e.error:
+                raise
 
 
 def _is_snapshot_restored(execution_id):
