@@ -20,7 +20,7 @@ node_templates:
         floating_network_id: { get_input: os_floating_network }
 
   host:
-    type: cloudify.opesntack.nodes.Host
+    type: cloudify.openstack.nodes.Host
     relationships:
       - type: cloudify.openstack.server_connected_to_keypair
         target: os_keypair

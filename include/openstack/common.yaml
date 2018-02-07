@@ -11,7 +11,7 @@ dsl_definitions:
 
 
 node_types:
-  cloudify.opesntack.nodes.Host:
+  cloudify.openstack.nodes.Host:
     derived_from: cloudify.openstack.nodes.Server
     properties:
       openstack_config:
