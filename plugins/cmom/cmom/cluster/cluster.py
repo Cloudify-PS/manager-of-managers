@@ -69,7 +69,10 @@ def _create_cli_profiles():
             '-u', security['admin_username'],
             '-p', security['admin_password'],
             '-t', DEFAULT_TENANT,
-            '-c', ca_cert, '--ssl'
+            '-c', ca_cert, '--ssl',
+            # Using port 53333 because on 443 nginx is using the external
+            # certificate which is not signed with the CA cert (CFY-7875)
+            '--rest-port', 53333
         ])
 
 
