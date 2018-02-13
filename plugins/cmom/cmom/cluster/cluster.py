@@ -72,7 +72,7 @@ def _create_cli_profiles():
             '-c', ca_cert, '--ssl',
             # Using port 53333 because on 443 nginx is using the external
             # certificate which is not signed with the CA cert (CFY-7875)
-            '--rest-port', 53333
+            '--rest-port', '53333'
         ])
 
 
