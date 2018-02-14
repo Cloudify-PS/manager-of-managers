@@ -55,6 +55,13 @@ node_types:
         configure:
           implementation: cluster.cmom.cluster.start_cluster
           inputs:
+            ca_cert:
+              description: |
+                The CA certificate which will be used to connect to the
+                Tier 1 managers via the CLI. This path is relative to the
+                Tier 2 manager, and needs to be accessible by `cfyuser`
+                (i.e. /etc/cloudify/PATH)
+              default: { get_input: ca_cert }
             restore:
               description: |
                 If set to true then before creating the cluster first a
@@ -140,17 +147,20 @@ node_types:
                 install the Tier 1 managers. This path is relative to the
                 Tier 2 manager, and needs to be accessible by `cfyuser`
                 (i.e. /etc/cloudify/PATH)
+              default: { get_input: install_rpm_path }
             ca_cert:
               description: |
-                The external certificate which will be used to connect to the
+                The CA certificate which will be used to connect to the
                 Tier 1 managers via the CLI. This path is relative to the
                 Tier 2 manager, and needs to be accessible by `cfyuser`
                 (i.e. /etc/cloudify/PATH)
+              default: { get_input: ca_cert }
             ca_key:
               description: >
                 The key for the above certificate. This path is relative to the
                 Tier 2 manager, and needs to be accessible by `cfyuser`
                 (i.e. /etc/cloudify/PATH)
+              default: { get_input: ca_key }
         delete: misc.cmom.misc.cleanup_fileserver
 
 

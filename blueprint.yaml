@@ -26,13 +26,6 @@ imports:
 node_templates:
   cloudify_fileserver:
     type: cloudify.nodes.FileServer
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            install_rpm_path: { get_input: install_rpm_path }
-            ca_cert: { get_input: ca_cert }
-            ca_key: { get_input: ca_key }
 
   cloudify_manager:
     type: cloudify.nodes.CloudifyTier1Manager
