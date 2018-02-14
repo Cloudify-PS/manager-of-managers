@@ -35,11 +35,6 @@ node_types:
         create:
           implementation: manager.cmom.manager.install_rpm
           inputs:
-            install_rpm_path:
-              description: >
-                The path to the install RPM which will be used to
-                install the manager. This path is relative to the Tier 2
-                manager's fileserver (i.e. /opt/manager/resources/PATH)
             config:
               description: >
                 This is an arbitrary dictionary which should mirror the structure of
@@ -57,16 +52,9 @@ node_types:
     derived_from: cloudify.nodes.Root
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: misc.cmom.misc.setup_globals
         configure:
           implementation: cluster.cmom.cluster.start_cluster
           inputs:
-            ca_cert:
-              description: |
-                The external certificate which will be used to connect to the
-                Tier 1 managers via the CLI
-            ca_key:
-              description: The key for the above certificate
             restore:
               description: |
                 If set to true then before creating the cluster first a
@@ -139,6 +127,33 @@ node_types:
                 will be assigned
               default: ''
 
+  cloudify.nodes.FileServer:
+    derived_from: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: misc.cmom.misc.setup_fileserver
+          inputs:
+            install_rpm_path:
+              description: >
+                The path to the install RPM which will be used to
+                install the Tier 1 managers. This path is relative to the
+                Tier 2 manager, and needs to be accessible by `cfyuser`
+                (i.e. /etc/cloudify/PATH)
+            ca_cert:
+              description: |
+                The external certificate which will be used to connect to the
+                Tier 1 managers via the CLI. This path is relative to the
+                Tier 2 manager, and needs to be accessible by `cfyuser`
+                (i.e. /etc/cloudify/PATH)
+            ca_key:
+              description: >
+                The key for the above certificate. This path is relative to the
+                Tier 2 manager, and needs to be accessible by `cfyuser`
+                (i.e. /etc/cloudify/PATH)
+        delete: misc.cmom.misc.cleanup_fileserver
+
+
 # For descriptions of workflow parameters see above
 workflows:
 
@@ -167,3 +182,6 @@ relationships:
     target_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         preconfigure: manager.cmom.cluster.preconfigure
+
+  manager_connected_to_fileserver:
+    derived_from: cloudify.relationships.depends_on

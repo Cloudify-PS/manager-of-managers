@@ -24,17 +24,27 @@ imports:
   # TODO: Add an auto-heal policy
 
 node_templates:
+  cloudify_fileserver:
+    type: cloudify.nodes.FileServer
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            install_rpm_path: { get_input: install_rpm_path }
+            ca_cert: { get_input: ca_cert }
+            ca_key: { get_input: ca_key }
 
   cloudify_manager:
     type: cloudify.nodes.CloudifyTier1Manager
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
+      - type: manager_connected_to_fileserver
+        target: cloudify_fileserver
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
           inputs:
-            install_rpm_path: { get_input: install_rpm_path }
             config:
               manager:
                 private_ip: { get_attribute: [ host, ip ]}
@@ -56,8 +66,6 @@ node_templates:
       cloudify.interfaces.lifecycle:
         configure:
           inputs:
-            ca_cert: { get_input: ca_cert }
-            ca_key: { get_input: ca_key }
             restore: { get_input: restore }
             backup: { get_input: backup }
             snapshot_path: { get_input: snapshot_path }
