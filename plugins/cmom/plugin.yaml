@@ -61,10 +61,10 @@ node_types:
         configure:
           implementation: cluster.cmom.cluster.start_cluster
           inputs:
-            ca_cert:
+            external_cert:
               description: |
-                The CA certificate which will be used to connect to the Tier 1
-                managers
+                The external certificate which will be used to connect to the
+                Tier 1 managers via the CLI
             restore:
               description: |
                 If set to true then before creating the cluster first a

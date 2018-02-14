@@ -75,20 +75,20 @@ the `install_rpm_path` input's value will be
 
 ### Extra files in the blueprint folder
 
-In order to be used both by the Tier 1 and Tier 2 managers, the CA
+In order to be used both by the Tier 1 and Tier 2 managers, the external
 certificate and key need to be located in the blueprint folder before
 the blueprint is uploaded to the Tier 2 manager. This is in order to
 utilize the built-in `ctx.download_resource` functionality.
 The respective inputs for the cert and the key are
-`ca_cert` and `ca_key` (both could be set with secrets with the same
-names). So if inside the `manager-of-managers` folder, create a new
+`external_cert` and `external_key`.
+So if inside the `manager-of-managers` folder, create a new
 folder `ssl` and put the CA cert and key inside it, and then set,
 either via secrets or inputs this relative path. e.g.
 
 ```
 inputs:
-  ca_cert: ssl/ca_certificate.pem
-  ca_key: ssl/ca_key.pem
+  external_cert: ssl/external_certificate.pem
+  external_key: ssl/external_key.pem
 ```
 
 
@@ -231,8 +231,10 @@ might be added later.
 These are general inputs necessary for the blueprint:
 
 * `install_rpm_path` - as specified above (can be set via a secret)
-* `ca_cert` - as specified above (can be set via a secret)
-* `ca_key` - as specified above (can be set via a secret)
+* `external_cert` - as specified above
+* `external_key` - as specified above
+* `ca_cert` - the CA certificate used to sign internal auto generated certs
+* `ca_key` - the key for the CA cert
 * `manager_admin_password` - as specified above (can be set via a secret)
 * `manager_admin_username` - the admin username for the Tier 1 managers
 (default: admin)

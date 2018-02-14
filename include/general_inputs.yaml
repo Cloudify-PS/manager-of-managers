@@ -27,16 +27,21 @@ inputs:
       Whenever possible the inputs in the blueprint.yaml file should be used.
     default: {}
 
-  # **NOTE** The below inputs are paths relative to the blueprint.yaml file!
+  # **NOTE** The certificate inputs are paths relative to the blueprint.yaml file!
   ca_cert:
     description: |
-      The CA certificate used to sign any auto generated certificates
-      (internal or external). This is the only certificate actually present on
-      the agent machines
-    default: { get_secret: ca_cert }
+      The CA certificate used to sign internal auto generated certificates.
+      This is the certificate present on the agent machines.
+    default: ''
   ca_key:
     description: The key for the above certificate
-    default: { get_secret: ca_key }
+    default: ''
+  external_cert:
+    description: |
+      The external certificate used when connecting to the manager via the UI
+      or the CLI.
+  external_key:
+    description: The key for the above certificate
 
   ssh_user:
     description: User name used when SSH-ing into the manager machines

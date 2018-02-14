@@ -46,6 +46,8 @@ node_templates:
               restservice:
                 ldap: { get_input: ldap_config }
               ssl_inputs:
+                external_cert_path: { get_input: external_cert }
+                external_key_path: { get_input: external_key }
                 ca_cert_path: { get_input: ca_cert }
                 ca_key_path: { get_input: ca_key }
             additional_config: { get_input: additional_config }
@@ -59,7 +61,7 @@ node_templates:
       cloudify.interfaces.lifecycle:
         configure:
           inputs:
-            ca_cert: { get_input: ca_cert }
+            external_cert: { get_input: external_cert }
             restore: { get_input: restore }
             backup: { get_input: backup }
             snapshot_path: { get_input: snapshot_path }
