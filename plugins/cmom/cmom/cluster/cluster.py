@@ -4,6 +4,7 @@ import shutil
 
 from cloudify import ctx
 from cloudify.decorators import operation
+from cloudify.state import ctx_parameters as inputs
 
 from ..common import workdir, DEFAULT_TENANT
 
@@ -58,7 +59,6 @@ def _set_cluster_outputs():
 
 def _create_cli_profiles():
     managers = ctx.instance.runtime_properties['managers']
-    ca_cert = ctx.instance.runtime_properties['ca_cert']
     for config in managers:
         public_ip = config['manager']['public_ip']
         security = config['manager']['security']
@@ -68,7 +68,7 @@ def _create_cli_profiles():
             '-u', security['admin_username'],
             '-p', security['admin_password'],
             '-t', DEFAULT_TENANT,
-            '-c', ca_cert, '--ssl'
+            '-c', inputs['ca_cert'], '--ssl'
         ])
 
 
