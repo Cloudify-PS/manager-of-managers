@@ -4,8 +4,12 @@ import subprocess
 from cloudify import ctx
 from cloudify.exceptions import CommandExecutionException
 
+FILE_SERVER_BASE = '/opt/manager/resources'
 CERTIFICATES = 'certificates'
 DEFAULT_TENANT = 'default_tenant'
+INSTALL_RPM = 'cloudify-manager-install.rpm'
+CA_CERT = 'ca_cert.pem'
+CA_KEY = 'ca_key.pem'
 
 
 def execute_and_log(cmd,
@@ -43,18 +47,6 @@ def execute_and_log(cmd,
             cmd, error=output, output=output, code=return_code
         )
     return output
-
-
-def download_certificate(relative_path, deployment_workdir=False):
-    base_dir = workdir() if deployment_workdir else os.path.expanduser('~')
-    target_dir = os.path.join(base_dir, CERTIFICATES)
-    if not os.path.isdir(target_dir):
-        os.mkdir(target_dir)
-
-    filename = os.path.basename(relative_path)
-    target_file = os.path.join(target_dir, filename)
-    local_path = ctx.download_resource(relative_path, target_file)
-    return local_path
 
 
 def workdir(deployment_id=None):
