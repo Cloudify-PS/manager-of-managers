@@ -1,19 +1,25 @@
+# Note on paths: whenever a path is mentioned here in regards to
+# inputs, it is *always* assumed that the path is relative to the
+# Tier 2 manager, *and* is accessible by `cfyuser`.
+# The most common place would be to put such files in
+# `/etc/cloudify`, and chown them with `cfyuser`
+
 inputs:
   install_rpm_path:
     description: >
       The path to the install RPM which will be used to
-      install the manager. This path is relative to the Tier 2
-      manager's fileserver (i.e. /opt/manager/resources/PATH)
+      install the manager. See explanation above for path instructions. Mandatory.
     type: string
-    default: { get_secret: install_rpm_path }
   manager_admin_username:
     description: |
       The username of the Cloudify Manager admin user. This shouldn't usually be modified
     default: admin
   manager_admin_password:
-    description: The password for the Cloudify Manager admin user
+    description: >
+      The password for the Cloudify Manager admin user. It is recommended to
+      change the default value.
     type: string
-    default: { get_secret: manager_admin_password }
+    default: admin
   num_of_instances:
     description: The number of Cloudify Manager instances in a cluster
     type: integer
@@ -34,12 +40,13 @@ inputs:
       This is the certificate present on the agent machines.
       This is also the certificate that will be used to generate external
       certificates for the Tier 1 managers.
+      See explanation above for path instructions.
   ca_key:
-    description: The key for the above certificate
+    description: The key for the above certificate. See explanation above for path instructions.
 
   ssh_user:
     description: User name used when SSH-ing into the manager machines
   ssh_private_key_path:
     description: |
       Path to the private key for the keypair whose name is provided by "keypair_name".
-      Path must be accessible from within the orchestrating machine.
+      See explanation above for path instructions.

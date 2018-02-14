@@ -49,46 +49,30 @@ cfy plugins upload <CMOM_WAGON_OUTPUT> -y plugins/cmom/plugin.yaml
 
 ### Tier 2 manager files
 
-a few files need to be present on the Tier 2 manager.
-These are:
+a few files need to be present on the Tier 2 manager. All of those files
+need to be accessible by Cloudify's user - `cfyuser`. Because of this,
+it is advised to place them in `/etc/cloudify`, and make sure they are
+`chown`ed by `cfyuser` (e.f. `chown cfyuser: /etc/cloudify/filename`).
+The files are:
 
 1. The private SSH key connected to the cloud keypair. Its input is
-is `ssh_private_key_path`. This file needs to be accessible by
-Cloudify's user (`cfyuser`), so it is advised to place this file
-under `/etc/cloudify`. This is not mandatory, and any location will do,
-as long as it is accessible by `cfyuser`.
+is `ssh_private_key_path`.
 
 1. The install RPM (its world-accessible URL will be provided
-separately). Its input is `install_rpm_path` (it's also possible to
-set this path in a secret of the same name - `install_rpm_path`).
-This file needs to reside inside the Tier 2 manager's fileserver
-directory - `/opt/manager/resources`, and the input fill be its path
-relative to this base dir. So if e.g. the full path is:
+separately). Its input is `install_rpm_path`.
 
-```
-/opt/manager/resources/extras/cloudify-manager-install-4.3.rpm
-```
+1. The CA certificate and key. Those will be used by the Tier 2 manager
+to connect to the Tier 1 managers, as well as for generating the Tier 1
+managers' external certificates. The inputs are `ca_cert` and `ca_key`.
 
-the `install_rpm_path` input's value will be
-`extras/cloudify-manager-install-4.3.rpm`.
-
-
-### Extra files in the blueprint folder
-
-In order to be used both by the Tier 1 and Tier 2 managers, the CA
-certificate and key need to be located in the blueprint folder before
-the blueprint is uploaded to the Tier 2 manager. This is in order to
-utilize the built-in `ctx.download_resource` functionality.
-The respective inputs for the cert and the key are
-`ca_cert` and `ca_key`.
-So if inside the `manager-of-managers` folder, create a new
-folder `ssl` and put the CA cert and key inside it, and then set,
-either via secrets or inputs this relative path. e.g.
+In summary, this inputs section should look like this:
 
 ```
 inputs:
-  ca_cert: ssl/ca_certificate.pem
-  ca_key: ssl/ca_key.pem
+  ca_cert: /etc/cloudify/ca_certificate.pem
+  ca_key: /etc/cloudify/ca_key.pem
+  ssh_private_key_path: /etc/cloudify/ssh_key
+  install_rpm_path: : /etc/cloudify/cloudify-manager-install.rpm
 ```
 
 
@@ -112,27 +96,11 @@ cfy deployments outputs <DEPLOYMENT_ID>
 ```
 
 
-## Blueprint inputs and secrets
+## Blueprint inputs
 
-Below is a list with explanations for all the inputs/secrets necessary
+Below is a list with explanations for all the inputs necessary
 for the blueprint to function. Much of this is mirrored in the
 [`sample_inputs`](sample_inputs.yaml) file.
-
-### Secrets
-
-Several global values can be set via the secrets mechanism.
-If those are set with `global` availability, they could be used by
-any number of deployments. All of those secrets have parallel
-input values, and can be used as regular inputs as well.
-
-These are:
-
-1. The above mentioned `install_rpm_path`.
-
-1. The also above mentioned `ca_cert` and `ca_key`.
-
-1. The admin password to be used by the Tier 1 managers -
-`manager_admin_password`.
 
 ### OpenStack inputs
 
@@ -230,10 +198,10 @@ might be added later.
 
 These are general inputs necessary for the blueprint:
 
-* `install_rpm_path` - as specified above (can be set via a secret)
+* `install_rpm_path` - as specified above
 * `ca_cert` - as specified above
 * `ca_key` - as specified above
-* `manager_admin_password` - as specified above (can be set via a secret)
+* `manager_admin_password` - as specified above
 * `manager_admin_username` - the admin username for the Tier 1 managers
 (default: admin)
 * `num_of_instances` - the number of Tier 1 instances to be created
