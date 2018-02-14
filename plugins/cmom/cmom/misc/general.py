@@ -5,7 +5,7 @@ from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
 
-from ..common import CA_KEY, CA_CERT, INSTALL_RPM
+from ..common import CA_KEY, CA_CERT, INSTALL_RPM, execute_and_log
 
 FILE_SERVER_BASE = '/opt/manager/resources'
 
@@ -49,6 +49,11 @@ def cleanup_fileserver(**_):
     Delete the install RPM and CA cert/key from the fileserver
     """
     ctx.logger.info('Cleaning up fileserver...')
-    shutil.rmtree(os.path.join(FILE_SERVER_BASE, CA_CERT))
-    shutil.rmtree(os.path.join(FILE_SERVER_BASE, CA_KEY))
-    shutil.rmtree(os.path.join(FILE_SERVER_BASE, INSTALL_RPM))
+
+    execute_and_log([
+        'rm', '-rf',
+        os.path.join(FILE_SERVER_BASE, CA_CERT),
+        os.path.join(FILE_SERVER_BASE, CA_KEY),
+        os.path.join(FILE_SERVER_BASE, INSTALL_RPM)
+    ], ignore_errors=True
+    )
