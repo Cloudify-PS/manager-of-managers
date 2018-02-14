@@ -15,15 +15,12 @@ ssh_user: centos
 # "keypair_name". Path must be accessible from within the Tier 2 manager
 ssh_private_key_path: /etc/cloudify/ssh_key
 
-# The CA certificate + key used to sign internal auto generated certificates
-# - these paths should be relative to the blueprint
+# The CA certificate + key used to sign internal auto generated certificates.
+# This is also the certificate that will be used to generate external
+# certificates for the Tier 1 managers - these paths should be relative
+# to the blueprint
 ca_cert: files/ca_cert.pem
 ca_key: files/ca_key.pem
-
-# The external certificate + key used when connecting to the manager via the UI
-# or the CLI - these paths should be relative to the blueprint
-external_cert: files/external_cert.pem
-external_key: files/external_key.pem
 
 #####################################################################
 # OPENSTACK INPUTS

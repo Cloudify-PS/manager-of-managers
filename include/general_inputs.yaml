@@ -32,15 +32,9 @@ inputs:
     description: |
       The CA certificate used to sign internal auto generated certificates.
       This is the certificate present on the agent machines.
-    default: ''
+      This is also the certificate that will be used to generate external
+      certificates for the Tier 1 managers.
   ca_key:
-    description: The key for the above certificate
-    default: ''
-  external_cert:
-    description: |
-      The external certificate used when connecting to the manager via the UI
-      or the CLI.
-  external_key:
     description: The key for the above certificate
 
   ssh_user:
