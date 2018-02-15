@@ -103,18 +103,26 @@ def _uninstall_rpm():
     execute_and_log(['yum', 'remove', '-y', 'cloudify-manager-install'])
 
 
+def _certs_dir():
+    return os.path.join(os.path.expanduser('~'), 'certificates')
+
+
 def _download_ca_cert_and_key():
     """
     Download CA cert and key from the Tier 2 fileserver
     """
     ctx.logger.info('Downloading certificates to a local path...')
-    ca_cert = download_resource_from_manager(
+    ca_cert = os.path.join(_certs_dir(), CA_CERT)
+    ca_key = os.path.join(_certs_dir(), CA_KEY)
+    download_resource_from_manager(
         resource_path=CA_CERT,
-        logger=ctx.logger
+        logger=ctx.logger,
+        target_path=ca_cert
     )
-    ca_key = download_resource_from_manager(
+    download_resource_from_manager(
         resource_path=CA_KEY,
-        logger=ctx.logger
+        logger=ctx.logger,
+        target_path=ca_key
     )
     return ca_cert, ca_key
 
@@ -143,7 +151,7 @@ def _generate_external_cert_and_key():
     execute_and_log(['sudo', 'mkdir', ssl_dir])
 
     manager_conf = inputs['config']['manager']
-    ctx.logger.info('Generation new external certificate...')
+    ctx.logger.info('Generating new external certificate...')
     execute_and_log([
         'cfy_manager', 'create-external-certs',
         '--private-ip', manager_conf['private_ip'],
@@ -154,6 +162,20 @@ def _generate_external_cert_and_key():
     _copy_external_cert_and_key()
     # Delete the ssl dir; it will be created by the installation
     execute_and_log(['sudo', 'rm', '-rf', ssl_dir])
+
+
+def _set_ca_cert_in_cli_profile():
+    """
+    Set the CA cert in the CLI profile, instead of the external cert.
+    This is because we're generating the external cert ourselves and signing
+    it with the CA cert, but then in order to verify it (say, when using
+    CLI, which uses requests under the hood). In order to use the external
+    cert, we'd need to
+    """
+    ca_cert = os.path.join(_certs_dir(), CA_CERT)
+    set_cmd = ['cfy', 'profiles', 'set', '-c', ca_cert]
+    execute_and_log(set_cmd, clean_env=True)
+    execute_and_log(['sudo', '-u', 'root'] + set_cmd, clean_env=True)
 
 
 @operation
@@ -172,6 +194,7 @@ def install_rpm(**_):
 def install_manager(**_):
     _dump_configuration()
     _install_manager()
+    _set_ca_cert_in_cli_profile()
 
 
 @operation
