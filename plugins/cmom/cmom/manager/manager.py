@@ -130,9 +130,8 @@ def _download_ca_cert_and_key():
 def _copy_external_cert_and_key():
     ctx.logger.info('Copying external cert and key...')
 
-    home_dir = os.path.expanduser('~')
-    external_cert = os.path.join(home_dir, 'external_cert.pem')
-    external_key = os.path.join(home_dir, 'external_key.pem')
+    external_cert = os.path.join(_certs_dir(), 'external_cert.pem')
+    external_key = os.path.join(_certs_dir(), 'external_key.pem')
     shutil.copy(EXTERNAL_CERT_PATH, external_cert)
     shutil.copy(EXTERNAL_KEY_PATH, external_key)
 
@@ -178,6 +177,20 @@ def _set_ca_cert_in_cli_profile():
     execute_and_log(['sudo', '-u', 'root'] + set_cmd, clean_env=True)
 
 
+def _execute_scripts():
+    ctx.logger.info('Executing post-install scripts...')
+    for script in inputs['scripts']:
+        script_name = os.path.basename(script)
+        script_path = download_resource_from_manager(
+            script_name,
+            logger=ctx.logger
+        )
+        execute_and_log(['chmod', '+x', script_path])
+
+        ctx.logger.info('Now running: {0}...'.format(script_name))
+        execute_and_log([script_path])
+
+
 @operation
 def install_rpm(**_):
     """
@@ -186,6 +199,9 @@ def install_rpm(**_):
     """
     _download_rpm()
     _install_rpm()
+
+    os.mkdir(_certs_dir())
+
     _generate_external_cert_and_key()
     _update_runtime_properties()
 
@@ -195,6 +211,7 @@ def install_manager(**_):
     _dump_configuration()
     _install_manager()
     _set_ca_cert_in_cli_profile()
+    _execute_scripts()
 
 
 @operation
