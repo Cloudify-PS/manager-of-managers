@@ -5,7 +5,6 @@ from cloudify import ctx
 from cloudify.exceptions import CommandExecutionException
 
 FILE_SERVER_BASE = '/opt/manager/resources'
-CERTIFICATES = 'certificates'
 DEFAULT_TENANT = 'default_tenant'
 INSTALL_RPM = 'cloudify-manager-install.rpm'
 CA_CERT = 'ca_cert.pem'

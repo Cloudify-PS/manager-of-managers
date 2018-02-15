@@ -35,6 +35,8 @@ inputs:
         * VISIBILITY defines who can see the plugin - must be one of
           [private, tenant, global] (Optional - default is tenant).
       Both WAGON and YAML are *required* fields
+      **NOTE** wagon filenames *must not* be changed. Currently, the code
+      relies on them being in the original format Wagon creates them it
     default: []
 
   secrets:
