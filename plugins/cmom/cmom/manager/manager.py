@@ -8,6 +8,7 @@ from collections import Mapping
 from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
+from cloudify.exceptions import CommandExecutionException
 from cloudify.manager import download_resource_from_manager
 
 from ..common import (
@@ -188,7 +189,13 @@ def _execute_scripts():
         execute_and_log(['chmod', '+x', script_path])
 
         ctx.logger.info('Now running: {0}...'.format(script_name))
-        execute_and_log([script_path])
+        try:
+            execute_and_log([script_path])
+        except CommandExecutionException as e:
+            ctx.logger.warning(
+                'Failed running script: {0}'.format(script_name)
+            )
+            ctx.logger.warning('Error: {0}'.format(e.error))
 
 
 @operation
