@@ -85,3 +85,13 @@ inputs:
         * VISIBILITY defines who can see the secret - must be one of
           [private, tenant, global] (Optional - default is tenant).
     default: []
+
+  scripts:
+    description: >
+      A list of scripts to run after the manager's installation.
+      The format is a simple list of script paths:
+      - <SCRIPT_PATH_1>
+      - <SCRIPT_PATH_2>
+      *NOTE* The paths here are relative to the Tier 2 manager, and need to be
+      accessible by `cfyuser`
+    default: []

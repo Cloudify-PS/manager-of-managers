@@ -45,7 +45,15 @@ node_types:
                 input if provided. Also needs to mirror the structure of
                 config.yaml
               default: {}
-        configure: manager.cmom.manager.install_manager
+        configure:
+          implementation: manager.cmom.manager.install_manager
+          inputs:
+            scripts:
+              description: >
+                A list of scripts paths to run after the manager's installation.
+                The paths relative to the Tier 2 manager, and needs to be
+                accessible by `cfyuser` (i.e. /etc/cloudify/PATH)
+              default: { get_input: scripts }
 #        delete: manager.cmom.manager.delete  # TODO: Is this necessary?
 
   cloudify.nodes.CloudifyTier1Cluster:
@@ -161,6 +169,12 @@ node_types:
                 Tier 2 manager, and needs to be accessible by `cfyuser`
                 (i.e. /etc/cloudify/PATH)
               default: { get_input: ca_key }
+            scripts:
+              description: >
+                A list of scripts paths to run after the manager's installation.
+                The paths relative to the Tier 2 manager, and needs to be
+                accessible by `cfyuser` (i.e. /etc/cloudify/PATH)
+              default: { get_input: scripts }
         delete: misc.cmom.misc.cleanup_fileserver
 
 

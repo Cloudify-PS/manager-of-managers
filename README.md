@@ -354,6 +354,17 @@ Where:
 * `VISIBILITY` defines who can see the secret - must be one of
   \[private, tenant, global\] (Optional - default is tenant).
 
+5. `scripts` - a list of scripts to run after the manager's installation.
+All these scripts need to be available on the Tier 2 manager and
+accessible by `cfyuser`. These scripts will be executed *after* the
+manager is installed but *before* the cluster is created. The format is:
+
+```
+scripts:
+  - <PATH_TO_SCRIPT_1>
+  - <PATH_TO_SCRIPT_2>
+```
+
 ### Upgrade inputs
 
 The following inputs are only relevant when upgrading a previous

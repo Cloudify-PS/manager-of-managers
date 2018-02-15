@@ -112,6 +112,11 @@ blueprints:
     tenant: tenant_2
     visibility: global
 
+# A list of scripts to run after the manager's installation
+scripts:
+  - /etc/cloudify/script1.sh
+  - /etc/cloudify/script2.py
+
 
 #####################################################################
 # ADDITIONAL CONFIG
