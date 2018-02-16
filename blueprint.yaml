@@ -18,13 +18,12 @@ imports:
   - include/upgrade_inputs.yaml
 
   # Manager of Managers plugin
-  # TODO: Because we're not installing plugin from source, change this to
-  # the new "plugin:" import notation
-  # plugin:cloudify-manager-of-managers?version=1.0
+  # Use the "plugin:" notation if the plugin folder is not included in the
+  # blueprint. Otherwise, use the regular path to the plugin.yaml file
   - plugins/cmom/plugin.yaml
+#  - plugin:cloudify-manager-of-managers?version=1.0
 
   # TODO: Add an auto-heal policy
-  # TODO: Allow running an arbitrary script (or list of scripts) after manager installation
 
 node_templates:
   cloudify_fileserver:
