@@ -42,8 +42,8 @@ def _create_snapshot(snapshot_id, deployment_id):
     )
     ctx.logger.info('Waiting for the snapshot to be created...')
     snapshot_created = False
-    for retry in range(10):
-        ctx.logger.debug(
+    for retry in range(100):
+        ctx.logger.info(
             'Waiting for the snapshot to be created [retry {0}/10]'.format(
                 retry
             )
@@ -194,8 +194,8 @@ def _restore_snapshot(snapshot_id):
 
     ctx.logger.info('Waiting for the snapshot to be restored...')
     snapshot_restored = False
-    for retry in range(10):
-        ctx.logger.debug(
+    for retry in range(100):
+        ctx.logger.info(
             'Waiting for the snapshot to be restored [retry {0}/10]'.format(
                 retry
             )
