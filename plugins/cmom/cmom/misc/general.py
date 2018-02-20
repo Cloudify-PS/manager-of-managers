@@ -8,6 +8,8 @@ from cloudify.state import ctx_parameters as inputs
 from ..common import CA_KEY, CA_CERT, INSTALL_RPM, execute_and_log
 
 FILE_SERVER_BASE = '/opt/manager/resources'
+# TODO: Create a folder per deployment. That way, when destroying, only one
+# folder will be removed, and any shared resources won't be
 
 
 def _copy_install_rpm():
