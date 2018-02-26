@@ -7,6 +7,7 @@ description: >
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.3/types.yaml
+  - http://www.getcloudify.org/spec/diamond-plugin/1.3.8/plugin.yaml
 
   # Swap the imports in this file to use any other IaaS or infrastructure
   - include/openstack/infra.yaml
@@ -22,8 +23,6 @@ imports:
   # blueprint. Otherwise, use the regular path to the plugin.yaml file
   - plugins/cmom/plugin.yaml
 #  - plugin:cloudify-manager-of-managers?version=1.0
-
-  # TODO: Add an auto-heal policy
 
 node_templates:
   cloudify_fileserver:
@@ -73,6 +72,25 @@ node_templates:
             plugins: { get_input: plugins }
             secrets: { get_input: secrets }
             blueprints: { get_input: blueprints }
+
+groups:
+  heal_group:
+    members: [host]
+    policies:
+      simple_autoheal_policy:
+        type: cloudify.policies.types.host_failure
+        properties:
+          service:
+            - .*host.*.cpu.total.system
+          interval_between_workflows: 60
+        triggers:
+          auto_heal_trigger:
+            type: cloudify.policies.triggers.execute_workflow
+            parameters:
+              workflow: heal
+              workflow_parameters:
+                node_instance_id: { 'get_property': [ SELF, node_id ] }
+                diagnose_value: { 'get_property': [ SELF, diagnose ] }
 
 policies:
   scale:
