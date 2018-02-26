@@ -34,6 +34,39 @@ node_types:
                 security_groups: [{ get_attribute: [ os_security_group, external_name ]}]
                 block_device_mapping_v2: { get_input: os_device_mapping }
 
+      ###########################################################
+      # Install a diamond agent on the host
+      # https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+
+      cloudify.interfaces.monitoring_agent:
+          install:
+            implementation: diamond.diamond_agent.tasks.install
+            inputs:
+              diamond_config:
+                default:
+                  interval: 1
+          start: diamond.diamond_agent.tasks.start
+          stop: diamond.diamond_agent.tasks.stop
+          uninstall: diamond.diamond_agent.tasks.uninstall
+
+      ###########################################################
+      # Adding some collectors. Used to get the default metrics
+      ###########################################################
+
+      cloudify.interfaces.monitoring:
+          start:
+            implementation: diamond.diamond_agent.tasks.add_collectors
+            inputs:
+              collectors_config:
+                default:
+                  CPUCollector: {}
+                  MemoryCollector: {}
+                  LoadAverageCollector: {}
+                  DiskUsageCollector:
+                    config:
+                      devices: x?vd[a-z]+[0-9]*$
+                  NetworkCollector: {}
 
 node_templates:
   os_security_group:
