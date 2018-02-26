@@ -86,8 +86,6 @@ node_templates:
         target: os_keypair
       - type: server_connected_to_port
         target: os_port
-      - type: cloudify.openstack.server_connected_to_security_group
-        target: os_security_group
       - type: cloudify.openstack.server_connected_to_server_group
         target: os_server_group
       # We're doing "contained_in" here, in order to take advantage of the
