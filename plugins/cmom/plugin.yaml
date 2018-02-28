@@ -205,7 +205,8 @@ relationships:
     derived_from: cloudify.relationships.connected_to
     target_interfaces:
       cloudify.interfaces.relationship_lifecycle:
-        preconfigure: manager.cmom.cluster.preconfigure
+        preconfigure: manager.cmom.cluster.add_manager_config
+        postconfigure: cluster.cmom.cluster.join_cluster
 
   manager_connected_to_fileserver:
     derived_from: cloudify.relationships.depends_on
