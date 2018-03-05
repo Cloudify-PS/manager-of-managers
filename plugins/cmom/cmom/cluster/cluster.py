@@ -37,7 +37,14 @@ def _join_cluster(master_config, slave_config):
     ])
 
 
-def _set_cluster_outputs():
+def _get_small_config(manager_config):
+    return {
+        'public_ip': manager_config['manager']['public_ip'],
+        'private_ip': manager_config['manager']['private_ip']
+    }
+
+
+def _set_cluster_runtime_props():
     """
     Set up the `managers` runtime prop to only contain the IPs of the managers,
     as the rest of the info should already be present in the CLI profiles
@@ -45,12 +52,10 @@ def _set_cluster_outputs():
     :return A list of dict with public + private IPs of managers
     """
     managers_config = ctx.instance.runtime_properties['managers']
-    managers = []
-    for manager in managers_config:
-        managers.append({
-            'public_ip': manager['manager']['public_ip'],
-            'private_ip': manager['manager']['private_ip'],
-        })
+    managers = [_get_small_config(manager) for manager in managers_config]
+
+    # This should sort by the private IP by default
+    managers = sorted(managers)
     ctx.instance.runtime_properties['managers'] = managers
     ctx.instance.update()
 
@@ -75,8 +80,10 @@ def _create_cli_profiles():
 @operation
 def start_cluster(**_):
     """
-    Start the cluster on the master manager profile, and join the cluster
-    for each of the slave profiles
+    This operation performs 3 main functions:
+    1. Create the CLI profiles for each of the Tier 1 managers
+    2. Start the cluster on the master node (the first manager in the list)
+    3. Perform upgrade from a previous deployment, if relevant
 
     This runs in the `start` operation of the default lifecycle of the
     `cloudify_cluster_config` node
@@ -85,10 +92,10 @@ def start_cluster(**_):
     config.validate()
 
     _create_cli_profiles()
-    manager_ips = _set_cluster_outputs()
+    managers = _set_cluster_runtime_props()
 
-    master, slaves = manager_ips[0], manager_ips[1:]
-    _start_cluster(master)
+    # We take the *first* manager to be the master
+    _start_cluster(master_config=managers[0])
 
     if config.backup:
         config.snapshot_path = backup(deployment_id=config.old_deployment_id)
@@ -96,20 +103,44 @@ def start_cluster(**_):
     if config.restore:
         restore(config)
 
-    for slave in slaves:
-        _join_cluster(master, slave)
+
+@operation
+def join_cluster(**_):
+    """
+    Join the cluster created in the `start_cluster` if you're a slave.
+    If you're the master, do nothing
+    """
+    if ctx.instance.runtime_properties['is_master']:
+        ctx.logger.info(
+            'Current node `{0}` is the cluster master, '
+            'nothing to do'.format(ctx.target.instance.id)
+        )
+    else:
+        config = ctx.target.instance.runtime_properties['config']
+        master_config = ctx.target.instance.runtime_properties['master_config']
+        _join_cluster(master_config, slave_config=config)
 
 
 @operation
-def preconfigure(**_):
+def add_manager_config(**_):
     """
     Pass the manager configuration from a `cloudify_manager` instance
     to the runtime properties of `cloudify_cluster_config`.
 
-    This runs in a relationship where CM is the target and CCC the source
+    This runs in a relationship where CloudifyManager is the target and
+    CloudifyCluster the source
     """
     config = ctx.target.instance.runtime_properties['config']
     managers = ctx.source.instance.runtime_properties.get('managers', [])
+
+    # The first manager to connect to the cluster is the master
+    if managers:
+        master_config = _get_small_config(managers[0])
+        is_master = False
+    else:
+        master_config = {}
+        is_master = True
+
     managers.append(config)
     ctx.source.instance.runtime_properties['managers'] = managers
     ctx.source.instance.update()
@@ -118,8 +149,15 @@ def preconfigure(**_):
             config, managers)
     )
 
-    # Clear the configuration from the manager's runtime properties
-    ctx.target.instance.runtime_properties.pop('config')
+    # Clear the full configuration from the manager's runtime properties,
+    # but keep a limited one
+    small_config = _get_small_config(config)
+    ctx.target.instance.runtime_properties['config'] = small_config
+
+    # Those values will be later used to join the cluster, if the current
+    # node is a slave
+    ctx.target.instance.runtime_properties['is_master'] = is_master
+    ctx.target.instance.runtime_properties['master_config'] = master_config
     ctx.target.instance.update()
 
 
