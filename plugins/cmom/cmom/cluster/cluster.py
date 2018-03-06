@@ -5,6 +5,7 @@ import shutil
 from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
+from cloudify.exceptions import CommandExecutionException, NonRecoverableError
 
 from ..common import workdir, DEFAULT_TENANT
 
@@ -24,17 +25,24 @@ def _start_cluster(master_config):
     ])
 
 
-def _join_cluster(master_config, slave_config):
+def _join_cluster(master_ip, slave_config):
     ctx.logger.info('Slave joining the cluster [{0}]'.format(slave_config))
 
     use_profile(slave_config['public_ip'])
 
-    execute_and_log([
-        'cfy', 'cluster', 'join',
-        '--cluster-host-ip', slave_config['private_ip'],
-        '--cluster-node-name', slave_config['public_ip'],
-        master_config['public_ip']
-    ])
+    try:
+        execute_and_log([
+            'cfy', 'cluster', 'join',
+            '--cluster-host-ip', slave_config['private_ip'],
+            '--cluster-node-name', slave_config['public_ip'],
+            master_ip
+        ])
+    except CommandExecutionException as e:
+        # This is a somewhat expected bug when joining a cluster
+        if "Node joined the cluster" in e.error and \
+                "'NoneType' object has no attribute 'append'" in e.error:
+            return
+        raise
 
 
 def _get_small_config(manager_config):
@@ -54,8 +62,6 @@ def _set_cluster_runtime_props():
     managers_config = ctx.instance.runtime_properties['managers']
     managers = [_get_small_config(manager) for manager in managers_config]
 
-    # This should sort by the private IP by default
-    managers = sorted(managers)
     ctx.instance.runtime_properties['managers'] = managers
     ctx.instance.update()
 
@@ -104,21 +110,86 @@ def start_cluster(**_):
         restore(config)
 
 
+def _get_all_profiles():
+    """ Return a list of all the available profiles """
+
+    output = execute_and_log(['cfy', 'profiles', 'list'], no_log=True)
+    profiles = []
+    for line in output.split('\n'):
+        if '443' in line and '22' in line:
+            profiles.append(line.split('|')[1].strip().replace('*', ''))
+    return profiles
+
+
+def use_cluster_profile():
+    """
+    Try to use all of the available profiles, until you find one which has
+    the cluster configured on, and use it
+    """
+    # This is here in order to allow calling this function from both
+    # context = context or ctx
+    # deployment_id = context.deployment.id
+    ctx.logger.info('Getting a cluster profile...')
+    profiles = _get_all_profiles()
+
+    for profile in profiles:
+        use_profile(profile)
+        try:
+            execute_and_log(
+                ['cfy', 'cluster', 'status'],
+                no_log=True,
+
+            )
+            ctx.logger.info('Found cluster profile: {0}'.format(profile))
+            return profile
+        except CommandExecutionException:
+            pass
+
+    raise NonRecoverableError('Could not find a profile with a cluster')
+
+
+def _get_current_leader_ip():
+    """
+    Return the IP of the current cluster leader. This is relevant after a
+    failover, when the master has changed
+    """
+    use_cluster_profile()
+    output = execute_and_log(['cfy', 'cluster', 'nodes', 'list'], no_log=True)
+    for line in output.split('\n'):
+        if 'leader' in line:
+            leader_ip = line.split('|')[2].strip()
+            ctx.logger.info('The new leader is: `{0}`'.format(leader_ip))
+            return leader_ip
+
+
 @operation
-def join_cluster(**_):
+def join_cluster(force_join=False, **_):
     """
     Join the cluster created in the `start_cluster` if you're a slave.
     If you're the master, do nothing
+
+    This runs in a relationship where CloudifyManager is the target and
+    CloudifyCluster the source
     """
-    if ctx.instance.runtime_properties['is_master']:
+    manager_runtime_props = ctx.target.instance.runtime_properties
+    if manager_runtime_props['is_master'] and not force_join:
         ctx.logger.info(
             'Current node `{0}` is the cluster master, '
             'nothing to do'.format(ctx.target.instance.id)
         )
     else:
-        config = ctx.target.instance.runtime_properties['config']
-        master_config = ctx.target.instance.runtime_properties['master_config']
-        _join_cluster(master_config, slave_config=config)
+        config = manager_runtime_props['small_config']
+        if force_join:
+            master_ip = _get_current_leader_ip()
+        else:
+            master_config = manager_runtime_props['master_config']
+            master_ip = master_config['public_ip']
+
+        _join_cluster(master_ip, slave_config=config)
+
+        if force_join:
+            # Need to switch to the only proper profile
+            use_profile(master_ip)
 
 
 @operation
@@ -152,7 +223,7 @@ def add_manager_config(**_):
     # Clear the full configuration from the manager's runtime properties,
     # but keep a limited one
     small_config = _get_small_config(config)
-    ctx.target.instance.runtime_properties['config'] = small_config
+    ctx.target.instance.runtime_properties['small_config'] = small_config
 
     # Those values will be later used to join the cluster, if the current
     # node is a slave
@@ -178,3 +249,14 @@ def clear_data(**_):
     # Clear the configuration from the cluster's runtime properties
     ctx.instance.runtime_properties.pop('managers', None)
     ctx.instance.update()
+
+
+@operation
+def remove_from_cluster(**_):
+    config = ctx.instance.runtime_properties['small_config']
+    ctx.logger.info('Removing current node from cluster...')
+
+    # Ignoring the errors, because maybe the node was already removed
+    execute_and_log([
+        'cfy', 'cluster', 'nodes', 'remove', config['private_ip']
+    ], ignore_errors=True)
