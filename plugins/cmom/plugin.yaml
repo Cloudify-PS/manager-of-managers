@@ -54,6 +54,7 @@ node_types:
                 The paths relative to the Tier 2 manager, and needs to be
                 accessible by `cfyuser` (i.e. /etc/cloudify/PATH)
               default: { get_input: scripts }
+        stop: cluster.cmom.cluster.remove_from_cluster
 #        delete: manager.cmom.manager.delete  # TODO: Is this necessary?
 
   cloudify.nodes.CloudifyTier1Cluster:
@@ -198,6 +199,15 @@ workflows:
     parameters:
       snapshot_id:
         default: ''
+
+  heal_tier1_manager:
+    mapping: cluster.cmom.cluster.workflows.heal_tier1_manager
+    parameters:
+      node_instance_id:
+        description: Which node instance has failed
+      diagnose_value:
+        description: Diagnosed reason of failure
+        default: Not provided
 
 relationships:
 

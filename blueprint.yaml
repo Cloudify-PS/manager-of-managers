@@ -77,7 +77,7 @@ groups:
   heal_group:
     members: [host]
     policies:
-      simple_autoheal_policy:
+      host_failure_policy:
         type: cloudify.policies.types.host_failure
         properties:
           service:
@@ -87,7 +87,7 @@ groups:
           auto_heal_trigger:
             type: cloudify.policies.triggers.execute_workflow
             parameters:
-              workflow: heal
+              workflow: heal_tier1_manager
               workflow_parameters:
                 node_instance_id: { 'get_property': [ SELF, node_id ] }
                 diagnose_value: { 'get_property': [ SELF, diagnose ] }
