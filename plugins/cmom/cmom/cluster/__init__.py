@@ -4,7 +4,8 @@ from .cluster import (                              # NOQA
     add_manager_config,
     clear_data,
     join_cluster,
-    remove_from_cluster
+    remove_from_cluster,
+    update_cluster_profile
 )
 from .maintenance import (                          # NOQA
     backup

@@ -121,31 +121,30 @@ def _get_all_profiles():
     return profiles
 
 
-def use_cluster_profile():
+@operation
+def update_cluster_profile(**_):
     """
     Try to use all of the available profiles, until you find one which has
     the cluster configured on, and use it
     """
-    # This is here in order to allow calling this function from both
-    # context = context or ctx
-    # deployment_id = context.deployment.id
-    ctx.logger.info('Getting a cluster profile...')
+    ctx.logger.info('Looking for a cluster profile...')
     profiles = _get_all_profiles()
 
     for profile in profiles:
+        ctx.logger.info('Trying `{0}`'.format(profile))
         use_profile(profile)
         try:
-            execute_and_log(
-                ['cfy', 'cluster', 'status'],
-                no_log=True,
-
-            )
+            execute_and_log(['cfy', 'cluster', 'status'], no_log=True)
+            execute_and_log(['cfy', 'cluster', 'update-profile'], no_log=True)
             ctx.logger.info('Found cluster profile: {0}'.format(profile))
             return profile
         except CommandExecutionException:
             pass
 
-    raise NonRecoverableError('Could not find a profile with a cluster')
+    return ctx.operation.retry(
+        'Could not find a profile with a cluster configured. This '
+        'might mean that the whole network is unreachable.'
+    )
 
 
 def _get_current_leader_ip():
@@ -153,7 +152,7 @@ def _get_current_leader_ip():
     Return the IP of the current cluster leader. This is relevant after a
     failover, when the master has changed
     """
-    use_cluster_profile()
+    update_cluster_profile()
     output = execute_and_log(['cfy', 'cluster', 'nodes', 'list'], no_log=True)
     for line in output.split('\n'):
         if 'leader' in line:
