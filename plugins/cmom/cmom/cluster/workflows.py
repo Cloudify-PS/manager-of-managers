@@ -4,11 +4,6 @@ from cloudify.plugins.lifecycle import (
     uninstall_node_instance_subgraph
 )
 
-from cloudify.state import current_ctx
-
-from .utils import execute_and_log
-from .cluster import use_cluster_profile
-
 
 def _get_cluster_instance(ctx):
     cluster_node = ctx.get_node('cloudify_cluster')
@@ -18,13 +13,18 @@ def _get_cluster_instance(ctx):
     return list(cluster_node.instances)[0]
 
 
-def _execute_task(ctx, operation, **kwargs):
+def _get_task(ctx, operation, **kwargs):
     cluster_instance = _get_cluster_instance(ctx)
-    cluster_instance.execute_operation(
+    return cluster_instance.execute_operation(
         operation=operation,
         kwargs=kwargs,
         allow_kwargs_override=True
-    ).get()
+    )
+
+
+def _execute_task(ctx, operation, **kwargs):
+    # Calling `task.get()` is what actually executes the task
+    _get_task(ctx, operation, **kwargs).get()
 
 
 @workflow
@@ -47,33 +47,38 @@ def _get_manager_node_instance(host_instance):
 
 
 def _get_manager_cluster_relationship(ctx, manager_instance):
-
     cluster_instance = _get_cluster_instance(ctx)
     for relationship in cluster_instance.relationships:
         if relationship.target_id == manager_instance.id:
             return relationship
 
 
+def _get_instances(ctx, host_instance_id):
+    host_instance = ctx.get_node_instance(host_instance_id)
+    manager_instance = _get_manager_node_instance(host_instance)
+    return host_instance, manager_instance
+
+
 @workflow
 def heal_tier1_manager(ctx, node_instance_id, diagnose_value, **_):
-    """ Run the heal workflow, and then join the cluster """
+    """
+    1. Validate that one of the CLI profiles is still operation.
+    2. Perform a backup.
+    3. Reinstall the host and the Cloudify Manager (heal workflow).
+    4. Rejoin the cluster.
+    """
 
     ctx.logger.info("Starting 'heal' workflow on {0}, Diagnosis: {1}"
                     .format(node_instance_id, diagnose_value))
 
-    ctx.logger.info('Updating CLI profile...')
-    with current_ctx.push(ctx):
-        use_cluster_profile()
-        execute_and_log(['cfy', 'cluster', 'update-profile'])
-    ctx.logger.info('CLI profile updated')
-
-    host_instance = ctx.get_node_instance(node_instance_id)
-    manager_instance = _get_manager_node_instance(host_instance)
+    host_instance, manager_instance = _get_instances(ctx, node_instance_id)
     relationship = _get_manager_cluster_relationship(ctx, manager_instance)
 
     graph = ctx.graph_mode()
     sequence = graph.sequence()
     sequence.add(
+        _get_task(ctx, 'maintenance_interface.update_cluster_profile'),
+        _get_task(ctx, 'maintenance_interface.backup'),
         uninstall_node_instance_subgraph(
             manager_instance, graph, ignore_failure=True
         ),
