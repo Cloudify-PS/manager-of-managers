@@ -82,6 +82,7 @@ groups:
         properties:
           service:
             - .*host.*.cpu.total.system
+          interval_between_workflows: 600
         triggers:
           auto_heal_trigger:
             type: cloudify.policies.triggers.execute_workflow
