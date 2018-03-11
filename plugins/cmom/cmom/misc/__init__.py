@@ -4,7 +4,7 @@ from .ip import (       # NOQA
     set_ip_from_port,
     get_resources_from_resource_pool
 )
-from .general import (  # NOQA
+from .file_server import (  # NOQA
     setup_fileserver,
     cleanup_fileserver
 )
