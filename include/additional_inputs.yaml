@@ -95,3 +95,16 @@ inputs:
       *NOTE* The paths here are relative to the Tier 2 manager, and need to be
       accessible by `cfyuser`
     default: []
+
+  files:
+    description: >
+      A list of files to copy to the Tier 1 managers from the Tier 2 manager
+      after the Tier 1 manager's installation.
+      The format should be as follows:
+      - src: <TIER_2_PATH_1>
+        dst: <TIER_1_PATH_1>
+      - src: <TIER_2_PATH_2>
+        dst: <TIER_1_PATH_2>
+      *NOTE* The Tier 2 paths here are relative to the Tier 2 manager, and
+      need to be accessible by `cfyuser`
+    default: []

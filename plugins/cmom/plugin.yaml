@@ -48,10 +48,16 @@ node_types:
         configure:
           implementation: manager.cmom.manager.install_manager
           inputs:
+            files:
+              description: >
+                A list of files to copy to the Tier 1 managers after their
+                installation. The paths are relative to the Tier 2 manager,
+                and need to be accessible by `cfyuser` (i.e. /etc/cloudify/PATH)
+              default: { get_input: files }
             scripts:
               description: >
-                A list of scripts paths to run after the manager's installation.
-                The paths relative to the Tier 2 manager, and needs to be
+                A list of script paths to run after the manager's installation.
+                The paths are relative to the Tier 2 manager, and need to be
                 accessible by `cfyuser` (i.e. /etc/cloudify/PATH)
               default: { get_input: scripts }
         stop: cluster.cmom.cluster.remove_from_cluster
@@ -177,6 +183,13 @@ node_types:
                 The paths relative to the Tier 2 manager, and needs to be
                 accessible by `cfyuser` (i.e. /etc/cloudify/PATH)
               default: { get_input: scripts }
+            files:
+              description: >
+                A list of files to copy to the Tier 1 managers after their
+                installation. The paths are relative to the Tier 2 manager,
+                and need to be accessible by `cfyuser` (i.e. /etc/cloudify/PATH)
+              default: { get_input: files }
+
         delete: misc.cmom.misc.cleanup_fileserver
 
 
