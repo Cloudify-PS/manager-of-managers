@@ -252,10 +252,11 @@ def clear_data(**_):
 
 @operation
 def remove_from_cluster(**_):
-    config = ctx.instance.runtime_properties['small_config']
-    ctx.logger.info('Removing current node from cluster...')
+    config = ctx.instance.runtime_properties.get('small_config')
+    if config:
+        ctx.logger.info('Removing current node from cluster...')
 
-    # Ignoring the errors, because maybe the node was already removed
-    execute_and_log([
-        'cfy', 'cluster', 'nodes', 'remove', config['private_ip']
-    ], ignore_errors=True)
+        # Ignoring the errors, because maybe the node was already removed
+        execute_and_log([
+            'cfy', 'cluster', 'nodes', 'remove', config['private_ip']
+        ], ignore_errors=True)
