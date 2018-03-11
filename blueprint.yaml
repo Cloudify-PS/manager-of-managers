@@ -56,22 +56,6 @@ node_templates:
     relationships:
       - type: cluster_connected_to_manager
         target: cloudify_manager
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        configure:
-          inputs:
-            restore: { get_input: restore }
-            backup: { get_input: backup }
-            snapshot_path: { get_input: snapshot_path }
-            old_deployment_id: { get_input: old_deployment_id }
-            snapshot_id: { get_input: snapshot_id }
-            transfer_agents: { get_input: transfer_agents }
-        start:
-          inputs:
-            tenants: { get_input: tenants }
-            plugins: { get_input: plugins }
-            secrets: { get_input: secrets }
-            blueprints: { get_input: blueprints }
 
 groups:
   heal_group:
