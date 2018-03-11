@@ -26,11 +26,7 @@ EXTERNAL_CERT_PATH = '/etc/cloudify/ssl/cloudify_external_cert.pem'
 
 def _download_rpm():
     ctx.logger.info('Downloading Cloudify Manager installation RPM...')
-    download_resource_from_manager(
-        resource_path=INSTALL_RPM,
-        logger=ctx.logger,
-        target_path=INSTALL_RPM_PATH
-    )
+    _download_file(INSTALL_RPM, target=INSTALL_RPM_PATH)
     ctx.logger.info('Install RPM downloaded successfully')
 
 
@@ -115,16 +111,8 @@ def _download_ca_cert_and_key():
     ctx.logger.info('Downloading certificates to a local path...')
     ca_cert = os.path.join(_certs_dir(), CA_CERT)
     ca_key = os.path.join(_certs_dir(), CA_KEY)
-    download_resource_from_manager(
-        resource_path=CA_CERT,
-        logger=ctx.logger,
-        target_path=ca_cert
-    )
-    download_resource_from_manager(
-        resource_path=CA_KEY,
-        logger=ctx.logger,
-        target_path=ca_key
-    )
+    _download_file(CA_CERT, target=ca_cert)
+    _download_file(CA_KEY, target=ca_key)
     return ca_cert, ca_key
 
 
@@ -178,16 +166,27 @@ def _set_ca_cert_in_cli_profile():
     execute_and_log(['sudo', '-u', 'root'] + set_cmd, clean_env=True)
 
 
+def _download_file(path, target=None):
+    """
+    Download a file that was put in the Tier 2 manager's file server,
+    under a DEP_ID folder
+    """
+    file_name = os.path.basename(path)
+    remote_path = os.path.join(ctx.deployment.id, file_name)
+    return download_resource_from_manager(
+        remote_path,
+        target_path=target,
+        logger=ctx.logger
+    )
+
+
 def _execute_scripts():
     ctx.logger.info('Executing post-install scripts...')
     for script in inputs['scripts']:
-        script_name = os.path.basename(script)
-        script_path = download_resource_from_manager(
-            script_name,
-            logger=ctx.logger
-        )
+        script_path = _download_file(script)
         execute_and_log(['chmod', '+x', script_path])
 
+        script_name = os.path.basename(script)
         ctx.logger.info('Now running: {0}...'.format(script_name))
         try:
             execute_and_log([script_path])
@@ -196,6 +195,12 @@ def _execute_scripts():
                 'Failed running script: {0}'.format(script_name)
             )
             ctx.logger.warning('Error: {0}'.format(e.error))
+
+
+def _download_files():
+    ctx.logger.info('Downloading files...')
+    for item in inputs['files']:
+        _download_file(item['src'], target=item['dst'])
 
 
 @operation
@@ -218,6 +223,7 @@ def install_manager(**_):
     _dump_configuration()
     _install_manager()
     _set_ca_cert_in_cli_profile()
+    _download_files()
     _execute_scripts()
 
 
