@@ -34,6 +34,7 @@ def _copy_list(paths):
         file_name = os.path.basename(src_path)
         dst_path = os.path.join(_dep_dir(), file_name)
         shutil.copy(src_path, dst_path)
+        execute_and_log(['chmod', '644', dst_path])
 
 
 def _copy_scripts():
@@ -59,7 +60,8 @@ def setup_fileserver(**_):
     """
     Copy install RPM and CA cert/key to the fileserver
     """
-    os.mkdir(_dep_dir())
+    if not os.path.exists(_dep_dir()):
+        os.mkdir(_dep_dir())
     _copy_install_rpm()
     _copy_ca_cert_and_key()
     _copy_scripts()
