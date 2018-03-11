@@ -43,7 +43,8 @@ def _copy_scripts():
 
 def _copy_files():
     ctx.logger.info('Copying files to the fileserver...')
-    _copy_list(inputs['files'])
+    # Only getting the Tier 2 paths of the files
+    _copy_list([f['src'] for f in inputs['files']])
 
 
 def _dep_dir():
@@ -58,6 +59,7 @@ def setup_fileserver(**_):
     """
     Copy install RPM and CA cert/key to the fileserver
     """
+    os.mkdir(_dep_dir())
     _copy_install_rpm()
     _copy_ca_cert_and_key()
     _copy_scripts()
