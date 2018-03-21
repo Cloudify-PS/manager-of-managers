@@ -148,7 +148,7 @@ node_types:
                 a snapshot ID based on the current deployemnt and datetime
                 will be assigned
               default: ''
-        update_cluster_profile: cluster.cmom.cluster.update_cluster_profile
+        update_cluster: cluster.cmom.cluster.update_cluster
 
   cloudify.nodes.FileServer:
     derived_from: cloudify.nodes.Root

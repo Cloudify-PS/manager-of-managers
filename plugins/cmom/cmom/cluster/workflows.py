@@ -77,7 +77,7 @@ def heal_tier1_manager(ctx, node_instance_id, diagnose_value, **_):
     graph = ctx.graph_mode()
     sequence = graph.sequence()
     sequence.add(
-        _get_task(ctx, 'maintenance_interface.update_cluster_profile'),
+        _get_task(ctx, 'maintenance_interface.update_cluster'),
         _get_task(ctx, 'maintenance_interface.backup'),
         uninstall_node_instance_subgraph(
             manager_instance, graph, ignore_failure=True
