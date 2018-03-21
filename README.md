@@ -406,3 +406,56 @@ be a special folder with all the snapshots from the Tier 1 managers. If the
 is provided as well (default: '')
 * `transfer_agents` - If set to `true`, an `install_new_agents` command will be executed after
 the restore is complete (default: true)
+
+## Healing
+
+The blueprint implements an auto-healing mechanism for the Tier 1
+managers. Due to the fact that Tier 1 managers are configured in a
+cluster, and software issues are to be handled by
+[HA failovers](http://docs.getcloudify.org/4.3.0/manager/high-availability-clusters/),
+healing is only performed on nodes that loose connection to the Tier 2
+manager (e.g. shut-off or terminated VMs, network issues, etc).
+
+A simple monitoring policy is defined that sends metrics (using the
+[Diamond plugin](http://docs.getcloudify.org/4.3.0/plugins/diamond/))
+to the Tier 2 manager. Those metrics are parsed by a simple [host-failure
+policy](http://docs.getcloudify.org/4.3.0/manager_policies/built-in-policies/#host-failure),
+which is triggered if the metrics stop being delivered. This policy
+triggers a custom healing workflow, which build on the default
+[heal workflow](http://docs.getcloudify.org/4.3.0/workflows/built-in-workflows/#the-heal-workflow)
+and adds functionality to it. The additional functionality has to do
+with the fact that we need to first remove the faulty node from the
+Tier 1 HA cluster, and then, after it was reinstalled, rejoin the same
+cluster.
+
+The flow of the healing workflow is as follows:
+
+1. Try to find at least one Tier 1 manager that is still alive. If none
+is found, **the workflow will fail and retry**. This is intended -
+the scenario we're trying to avoid is a case where connection to
+the whole cluster is down. We don't want to perform heal in this case,
+because the cluster is stateful, and healing is not intended for disaster
+recovery.
+
+1. Once found, remove the faulty node's IP from the cluster. This step
+is necessary in order for it to rejoin the cluster later on.
+
+1. Do a backup - this is just a precaution. If something will go wrong
+with the healing, you can create a new cluster that will be restored
+from a snapshot created during this step.
+
+1. Uninstall the faulty node. This means removing the whole VM.
+
+1. Reinstall the faulty node. This means re-creating the VM, and
+reinstalling Cloudify Manager on it.
+
+| Note that the Manager will be recreated with the same IP and other
+| configurations.
+
+6. Re-join the Tier 1 HA cluster.
+
+
+Because we're expecting HA failovers in cases of faulty nodes, the
+interval between subsequent heal workflow runs was increased to 600
+seconds (from the default 300), in order to accommodate the selection
+of a new cluster leader.
