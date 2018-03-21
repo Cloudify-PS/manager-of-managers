@@ -38,7 +38,18 @@ def execute_and_log(cmd,
     if deployment_workdir:
         env['CFY_WORKDIR'] = deployment_workdir
 
-    proc = _run_process(cmd, env)
+    try:
+        proc = _run_process(cmd, env)
+    except OSError as e:
+        if ignore_errors:
+            ctx.logger.debug(
+                'Failed running command `{0}` with error: {1}'.format(
+                    cmd, e
+                )
+            )
+            return
+        raise
+
     output = _process_output(proc, not no_log)
     return_code = _return_code(proc)
     if return_code and not ignore_errors:
