@@ -8,7 +8,7 @@ from cloudify.state import ctx_parameters as inputs
 from cloudify.exceptions import NonRecoverableError, CommandExecutionException
 
 from ..common import workdir
-from .utils import execute_and_log
+from .utils import execute_and_log, profile, get_current_master
 
 SNAPSHOTS_FOLDER = 'snapshots'
 RESTORE_SNAP_ID = 'restored_snapshot'
@@ -115,6 +115,33 @@ class UpgradeConfig(object):
         )
 
 
+def _upload_snapshot(config):
+    execute_and_log([
+        'cfy', 'snapshots',
+        'upload', config.snapshot_path,
+        '-s', RESTORE_SNAP_ID
+    ])
+
+
+def _download_snapshot(snapshot_id, output_path, deployment_id):
+    execute_and_log([
+        'cfy', 'snapshots',
+        'download', snapshot_id,
+        '-o', output_path
+    ], deployment_id=deployment_id)
+
+
+def _transfer_agents(config):
+    if config.transfer_agents:
+        try:
+            execute_and_log(['cfy', 'agents', 'install'])
+        except CommandExecutionException as e:
+            # If we try to run `cfy agents install` but there are no
+            # deployments, we can just ignore it
+            if 'There are no deployments installed' not in e.error:
+                raise
+
+
 @operation
 def backup(deployment_id=None, **_):
     """
@@ -137,12 +164,9 @@ def backup(deployment_id=None, **_):
             'a snapshot ID based on the current date and time'
         )
 
-    _create_snapshot(snapshot_id, deployment_id)
-    execute_and_log([
-        'cfy', 'snapshots',
-        'download', snapshot_id,
-        '-o', output_path
-    ], deployment_id=deployment_id)
+    with profile(get_current_master()):
+        _create_snapshot(snapshot_id, deployment_id)
+        _download_snapshot(snapshot_id, output_path, deployment_id)
     return output_path
 
 
@@ -158,21 +182,10 @@ def restore(config):
             '{0}.zip'.format(config.snapshot_id)
         )
 
-    execute_and_log([
-        'cfy', 'snapshots',
-        'upload', config.snapshot_path,
-        '-s', RESTORE_SNAP_ID
-    ])
-    _restore_snapshot(RESTORE_SNAP_ID)
-
-    if config.transfer_agents:
-        try:
-            execute_and_log(['cfy', 'agents', 'install'])
-        except CommandExecutionException as e:
-            # If we try to run `cfy agents install` but there are no
-            # deployments, we can just ignore it
-            if 'There are no deployments installed' not in e.error:
-                raise
+    with profile(get_current_master()):
+        _upload_snapshot(config)
+        _restore_snapshot(RESTORE_SNAP_ID)
+        _transfer_agents(config)
 
 
 def _is_snapshot_restored(execution_id):

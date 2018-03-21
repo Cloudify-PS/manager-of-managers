@@ -3,8 +3,8 @@ from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
 from cloudify.exceptions import CommandExecutionException
 
-from .utils import execute_and_log
 from ..common import DEFAULT_TENANT
+from .utils import execute_and_log, profile, get_current_master
 
 
 def _add_tenant_and_visibility(cmd, resource):
@@ -152,7 +152,8 @@ Expected format is:
 def add_additional_resources(**_):
     """ Upload/create additional resources on the managers of the cluster """
 
-    _create_tenants()
-    _upload_plugins()
-    _create_secrets()
-    _upload_blueprints()
+    with profile(get_current_master()):
+        _create_tenants()
+        _upload_plugins()
+        _create_secrets()
+        _upload_blueprints()
