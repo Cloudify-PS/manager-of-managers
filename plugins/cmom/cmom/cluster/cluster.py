@@ -232,6 +232,12 @@ def clear_data(**_):
 
 @operation
 def remove_from_cluster(**_):
+    # There's no point in removing the node from the cluster if we're
+    # uninstalling the whole deployment, as the VM instances themselves
+    # will be torn down
+    if ctx.workflow_id == 'uninstall':
+        return
+
     manager_ip = ctx.instance.runtime_properties.get('manager_ip')
     if manager_ip:
         ctx.logger.info('Removing current node from cluster...')
