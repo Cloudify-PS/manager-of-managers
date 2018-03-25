@@ -164,7 +164,8 @@ def backup(deployment_id=None, **_):
             'a snapshot ID based on the current date and time'
         )
 
-    with profile(get_current_master()):
+    manager_ip = get_current_master(deployment_id)
+    with profile(manager_ip, deployment_id):
         _create_snapshot(snapshot_id, deployment_id)
         _download_snapshot(snapshot_id, output_path, deployment_id)
     return output_path

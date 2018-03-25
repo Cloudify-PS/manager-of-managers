@@ -3,6 +3,8 @@ import json
 from uuid import uuid4
 from contextlib import contextmanager
 
+from cloudify import ctx
+
 from ..common import workdir, DEFAULT_TENANT
 from ..common import execute_and_log as _execute_and_log
 
@@ -24,10 +26,11 @@ def execute_and_log(cmd,
 
 
 @contextmanager
-def profile(manager_ip):
+def profile(manager_ip, deployment_id=None):
+    deployment_id = deployment_id or ctx.deployment.id
     temp_profile_name = None
     try:
-        temp_profile_name = _create_profile(manager_ip)
+        temp_profile_name = _create_profile(manager_ip, deployment_id)
         yield temp_profile_name
     finally:
         if temp_profile_name:
@@ -38,8 +41,8 @@ def profile(manager_ip):
             )
 
 
-def _create_profile(manager_ip):
-    cluster_config = load_cluster_config()
+def _create_profile(manager_ip, deployment_id):
+    cluster_config = load_cluster_config(deployment_id)
     config = cluster_config['managers'][manager_ip]
     profile_name = str(uuid4())
 
@@ -51,19 +54,21 @@ def _create_profile(manager_ip):
         '-c', cluster_config['ca_cert'],
         '--ssl',
         '--profile-name', profile_name
-    ])
+    ], deployment_id=deployment_id)
     # If working with clusters, make sure the profile is recognized as
     # a cluster profile
     execute_and_log(
         ['cfy', 'cluster', 'update-profile'],
         no_log=True,
-        ignore_errors=True
+        ignore_errors=True,
+        deployment_id=deployment_id
     )
     return profile_name
 
 
-def load_cluster_config():
-    config_path = os.path.join(workdir(), CLUSTER_CONFIG)
+def load_cluster_config(deployment_id=None):
+    deployment_id = deployment_id or ctx.deployment.id
+    config_path = os.path.join(workdir(deployment_id), CLUSTER_CONFIG)
     if not os.path.isfile(config_path):
         return {}
 
@@ -71,14 +76,16 @@ def load_cluster_config():
         return json.load(f)
 
 
-def dump_cluster_config(new_config):
-    config_path = os.path.join(workdir(), CLUSTER_CONFIG)
+def dump_cluster_config(new_config, deployment_id=None):
+    deployment_id = deployment_id or ctx.deployment.id
+    config_path = os.path.join(workdir(deployment_id), CLUSTER_CONFIG)
     with open(config_path, 'w') as f:
         json.dump(new_config, f)
 
 
-def get_current_master():
-    managers = load_cluster_config()['managers']
+def get_current_master(deployment_id=None):
+    deployment_id = deployment_id or ctx.deployment.id
+    managers = load_cluster_config(deployment_id)['managers']
     for manager_ip, manager_config in managers.items():
         if manager_config.get('is_master'):
             return manager_ip
