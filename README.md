@@ -418,7 +418,13 @@ manager (e.g. shut-off or terminated VMs, network issues, etc).
 
 A simple monitoring policy is defined that sends metrics (using the
 [Diamond plugin](http://docs.getcloudify.org/4.3.0/plugins/diamond/))
-to the Tier 2 manager. Those metrics are parsed by a simple [host-failure
+to the Tier 2 manager.
+
+> Metric heartbeats are sent every 10 seconds by default. See
+[here](http://docs.getcloudify.org/4.3.0/plugins/diamond/#global-config)
+to learn how to alter the `interval` if necessary.
+
+The above metrics are parsed by a simple [host-failure
 policy](http://docs.getcloudify.org/4.3.0/manager_policies/built-in-policies/#host-failure),
 which is triggered if the metrics stop being delivered. This policy
 triggers a custom healing workflow, which build on the default
@@ -437,20 +443,35 @@ the whole cluster is down. We don't want to perform heal in this case,
 because the cluster is stateful, and healing is not intended for disaster
 recovery.
 
-1. Once found, remove the faulty node's IP from the cluster. This step
+> In case the whole cluster is down, the workflow will retry the
+default amount of times (60) with the default interval (15 seconds),
+unless configured otherwise in the blueprint (see
+[here](http://docs.getcloudify.org/4.3.0/workflows/error-handling/#task-retries)
+to learn how to alter `task_retries` and `retry_interval`).
+The message displayed in this scenario will be: `Could not find a
+profile with a cluster configured. This might mean that the whole
+network is unreachable.`
+
+2. Once found, remove the faulty node's IP from the cluster. This step
 is necessary in order for it to rejoin the cluster later on.
 
-1. Do a backup - this is just a precaution. If something will go wrong
+3. Do a backup - this is just a precaution. If something will go wrong
 with the healing, you can create a new cluster that will be restored
 from a snapshot created during this step.
 
-1. Uninstall the faulty node. This means removing the whole VM.
+> The snapshots are saved in a folder created specifically for the
+deployment being backed-up under `/etc/cloudify`. Unless specified,
+the default is to use the current date and time as the snapshot name.
+So, a snapshot path will look like this:
+`/etc/cloudify/<DEPLOYMENT_NAME>/snapshots/2018-03-21-09:09:05.zip`
 
-1. Reinstall the faulty node. This means re-creating the VM, and
+4. Uninstall the faulty node. This means removing the whole VM.
+
+5. Reinstall the faulty node. This means re-creating the VM, and
 reinstalling Cloudify Manager on it.
 
-| Note that the Manager will be recreated with the same IP and other
-| configurations.
+> Note that the Manager will be recreated with the same IP and other
+configurations.
 
 6. Re-join the Tier 1 HA cluster.
 
@@ -458,4 +479,16 @@ reinstalling Cloudify Manager on it.
 Because we're expecting HA failovers in cases of faulty nodes, the
 interval between subsequent heal workflow runs was increased to 600
 seconds (from the default 300), in order to accommodate the selection
-of a new cluster leader.
+of a new cluster leader. The value can be configured in the main
+blueprint YAML file.
+
+### Post-heal actions
+
+After a successful heal any users working with the Tier 1 cluster via
+the CLI should run `cfy cluster update-profile` in order to update
+their local profiles.
+
+Users that are working with the Tier 1 cluster via the GUI will have
+to use a different IP when connecting to the manager if the healed
+node was the cluster leader. If the healed node was a replica, no
+further actions are required.
