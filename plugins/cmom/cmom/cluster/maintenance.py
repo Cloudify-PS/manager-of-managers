@@ -134,7 +134,7 @@ def _download_snapshot(snapshot_id, output_path, deployment_id):
 def _transfer_agents(config):
     if config.transfer_agents:
         try:
-            execute_and_log(['cfy', 'agents', 'install'])
+            execute_and_log(['cfy', 'agents', 'install', '--all-tenants'])
         except CommandExecutionException as e:
             # If we try to run `cfy agents install` but there are no
             # deployments, we can just ignore it
