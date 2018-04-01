@@ -86,7 +86,7 @@ Expected format is:
             continue
 
         # Create basic command
-        cmd = ['cfy', 'secrets', 'create', secret['key']]
+        cmd = ['cfy', 'secrets', 'create', secret['key'], '--update-if-exists']
 
         # Add string or file as the value of the secret
         string = secret.get('string')
