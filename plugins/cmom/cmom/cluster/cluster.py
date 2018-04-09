@@ -24,11 +24,18 @@ def _start_cluster(master_ip):
 
     master_config = load_cluster_config()['managers'][master_ip]
     with profile(master_config['public_ip']):
-        execute_and_log([
-            'cfy', 'cluster', 'start',
-            '--cluster-host-ip', master_config['private_ip'],
-            '--cluster-node-name', master_config['public_ip']
-        ])
+        try:
+            execute_and_log([
+                'cfy', 'cluster', 'start',
+                '--cluster-host-ip', master_config['private_ip'],
+                '--cluster-node-name', master_config['public_ip']
+            ])
+        except CommandExecutionException as e:
+            # This should make the start_cluster operation more idempotent
+            if "This manager machine is already part of " \
+               "a Cloudify Manager cluster" in e.error:
+                return
+            raise
 
 
 def _join_cluster(master_ip, slave_ip):

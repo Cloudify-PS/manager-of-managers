@@ -227,7 +227,6 @@ def _is_snapshot_restored(execution_id):
         ['cfy', 'executions', 'get', execution_id],
         no_log=True, ignore_errors=True
     )
-    ctx.logger.error('Output:\n{0}'.format(output))
     for line in output.split('\n'):
         if execution_id not in line:
             continue
