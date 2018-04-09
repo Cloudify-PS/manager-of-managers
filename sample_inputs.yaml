@@ -175,6 +175,15 @@ snapshot_id: ''
 # the restore is complete
 transfer_agents: true
 
+# A list of arguments that should be passed to the `cfy snapshots restore`
+# command. Available values are (should be passed as-is):
+# [--without-deployment-envs, --force, --restore-certificates, --no-reboot]
+restore_params: []
+
+# A list of arguments that should be passed to the `cfy snapshots create`
+# command. Available values are (should be passed as-is):
+# [--include-metrics, --exclude-credentials, --exclude-logs, --exclude-events]
+backup_params: []
 
 #####################################################################
 # RESOURCE POOL INPUTS

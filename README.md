@@ -406,6 +406,14 @@ be a special folder with all the snapshots from the Tier 1 managers. If the
 is provided as well (default: '')
 * `transfer_agents` - If set to `true`, an `install_new_agents` command will be executed after
 the restore is complete (default: true)
+* `backup_params` - An optional list of parameters to pass to the underlying
+`cfy snapshots create` command. Accepted values are: [`--include-metrics`,
+`--exclude-credentials`, `--exclude-logs`, `--exclude-events`]. These need to be 
+passed as-is with both dashes. (default: [])
+* `restore_params` - An optional list of parameters to pass to the underlying
+`cfy snapshots restore` command. Accepted values are: 
+[`--without-deployment-envs`, `--force`, `--restore-certificates`, 
+`--no-reboot`]. These need to be passed as-is with both dashes. (default: [])
 
 ## Healing
 
