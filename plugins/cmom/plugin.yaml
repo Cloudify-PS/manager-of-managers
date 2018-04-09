@@ -122,6 +122,24 @@ node_types:
                 executed after the restore is complete
               type: boolean
               default: { get_input: transfer_agents }
+            backup_params:
+              description: |
+                A list of arguments that should be passed to the `cfy snapshots create`
+                command. Available values are (should be passed as-is):
+                  --include-metrics
+                  --exclude-credentials
+                  --exclude-logs
+                  --exclude-events
+              default: { get_input: backup_params }
+            restore_params:
+              description: |
+                A list of arguments that should be passed to the `cfy snapshots restore`
+                command. Available values are (should be passed as-is):
+                  --without-deployment-envs
+                  --force
+                  --restore-certificates
+                  --no-reboot
+              default: { get_input: restore_params }
         start:
           implementation: cluster.cmom.cluster.add_additional_resources
           inputs:
@@ -213,6 +231,8 @@ workflows:
     parameters:
       snapshot_id:
         default: ''
+      backup_params:
+        default: { get_input: backup_params }
 
   heal_tier1_manager:
     mapping: cluster.cmom.cluster.workflows.heal_tier1_manager
