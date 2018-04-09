@@ -35,16 +35,16 @@ def _is_snapshot_created(snapshot_id, deployment_id):
     return False
 
 
-def _create_snapshot(snapshot_id, deployment_id):
+def _create_snapshot(snapshot_id, deployment_id, create_snap_params):
     execute_and_log(
-        ['cfy', 'snapshots', 'create', snapshot_id],
+        ['cfy', 'snapshots', 'create', snapshot_id] + create_snap_params,
         deployment_id=deployment_id
     )
     ctx.logger.info('Waiting for the snapshot to be created...')
     snapshot_created = False
-    for retry in range(100):
+    for retry in range(1, 101):
         ctx.logger.info(
-            'Waiting for the snapshot to be created [retry {0}/10]'.format(
+            'Waiting for the snapshot to be created [retry {0}/100]'.format(
                 retry
             )
         )
@@ -63,6 +63,20 @@ def _create_snapshot(snapshot_id, deployment_id):
 
 
 class UpgradeConfig(object):
+    BACKUP_PARAMS = {
+        '--include-metrics',
+        '--exclude-credentials',
+        '--exclude-logs',
+        '--exclude-events'
+    }
+
+    RESTORE_PARAMS = {
+        '--without-deployment-envs',
+        '--force',
+        '--restore-certificates',
+        '--no-reboot'
+    }
+
     def __init__(self):
         self.snapshot_id = inputs.get('snapshot_id')
         self.old_deployment_id = inputs.get('old_deployment_id')
@@ -70,9 +84,19 @@ class UpgradeConfig(object):
         self.restore = inputs.get('restore', False)
         self.backup = inputs.get('backup', False)
         self.transfer_agents = inputs.get('transfer_agents', True)
+        self.backup_params = inputs.get('backup_params', [])
+        self.restore_params = inputs.get('restore_params', [])
 
     def validate(self):
         if self.restore:
+            if not all(param in self.RESTORE_PARAMS for
+                       param in self.restore_params):
+                self._raise_error(
+                    'the only restore parameters allowed are: {0}, '
+                    'but: {1} were provided'.format(
+                        list(self.RESTORE_PARAMS), self.restore_params)
+                )
+
             if self.backup:
                 if self.snapshot_path:
                     self._raise_error(
@@ -83,6 +107,13 @@ class UpgradeConfig(object):
                     self._raise_error(
                         'and `backup` is set to True, then '
                         '`old_deployment_id` must be provided as well'
+                    )
+                if not all(param in self.BACKUP_PARAMS for
+                           param in self.backup_params):
+                    self._raise_error(
+                        'the only backup parameters allowed are: {0}, '
+                        'but: {1} were provided'.format(
+                            list(self.BACKUP_PARAMS), self.backup_params)
                     )
             else:
                 wrong_inputs = False
@@ -100,7 +131,8 @@ class UpgradeConfig(object):
                     )
         else:
             values = ['backup', 'old_deployment_id',
-                      'snapshot_id', 'snapshot_path']
+                      'snapshot_id', 'snapshot_path',
+                      'backup_params', 'restore_params']
 
             if any([getattr(self, value) for value in values]):
                 self._raise_error(
@@ -143,11 +175,12 @@ def _transfer_agents(config):
 
 
 @operation
-def backup(deployment_id=None, **_):
+def backup(deployment_id=None, backup_params=None, **_):
     """
     Create a snapshot on a Tier 1 cluster, and download it to a dedicated
     folder on the Tier 2 manager
     """
+    backup_params = backup_params or []
     snapshot_id = inputs.get('snapshot_id')
     if not snapshot_id:
         now = datetime.now()
@@ -166,7 +199,7 @@ def backup(deployment_id=None, **_):
 
     manager_ip = get_current_master(deployment_id)
     with profile(manager_ip, deployment_id):
-        _create_snapshot(snapshot_id, deployment_id)
+        _create_snapshot(snapshot_id, deployment_id, backup_params)
         _download_snapshot(snapshot_id, output_path, deployment_id)
     return output_path
 
@@ -185,15 +218,16 @@ def restore(config):
 
     with profile(get_current_master()):
         _upload_snapshot(config)
-        _restore_snapshot(RESTORE_SNAP_ID)
+        _restore_snapshot(RESTORE_SNAP_ID, config.restore_params)
         _transfer_agents(config)
 
 
 def _is_snapshot_restored(execution_id):
     output = execute_and_log(
         ['cfy', 'executions', 'get', execution_id],
-        no_log=True
+        no_log=True, ignore_errors=True
     )
+    ctx.logger.error('Output:\n{0}'.format(output))
     for line in output.split('\n'):
         if execution_id not in line:
             continue
@@ -202,15 +236,17 @@ def _is_snapshot_restored(execution_id):
     return False
 
 
-def _restore_snapshot(snapshot_id):
-    output = execute_and_log(['cfy', 'snapshots', 'restore', snapshot_id])
-    execution_id = output.split("The execution's id is")[1].strip()
+def _restore_snapshot(snapshot_id, restore_params):
+    output = execute_and_log(
+        ['cfy', 'snapshots', 'restore', snapshot_id] + restore_params
+    )
+    execution_id = output.split("The execution's id is")[1].strip().split()[0]
 
     ctx.logger.info('Waiting for the snapshot to be restored...')
     snapshot_restored = False
-    for retry in range(100):
+    for retry in range(1, 101):
         ctx.logger.info(
-            'Waiting for the snapshot to be restored [retry {0}/10]'.format(
+            'Waiting for the snapshot to be restored [retry {0}/100]'.format(
                 retry
             )
         )
