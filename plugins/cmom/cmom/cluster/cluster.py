@@ -83,13 +83,16 @@ def start_cluster(**_):
         'ca_cert': inputs['ca_cert']
     })
 
-    _start_cluster(get_current_master())
-
     if config.backup:
-        config.snapshot_path = backup(config.old_deployment_id)
+        config.snapshot_path = backup(
+            config.old_deployment_id,
+            config.backup_params
+        )
 
     if config.restore:
         restore(config)
+
+    _start_cluster(get_current_master())
 
 
 def _get_cluster_profile(managers):
