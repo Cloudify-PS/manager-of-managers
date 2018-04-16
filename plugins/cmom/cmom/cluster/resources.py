@@ -4,7 +4,8 @@ from cloudify.state import ctx_parameters as inputs
 from cloudify.exceptions import CommandExecutionException
 
 from ..common import DEFAULT_TENANT
-from .utils import execute_and_log, profile, get_current_master
+from .utils import execute_and_log
+from .profile import profile, get_current_master
 
 
 def _add_tenant_and_visibility(cmd, resource):
