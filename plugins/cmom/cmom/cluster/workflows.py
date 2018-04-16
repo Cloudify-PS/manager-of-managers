@@ -77,7 +77,6 @@ def heal_tier1_manager(ctx, node_instance_id, diagnose_value, **_):
     graph = ctx.graph_mode()
     sequence = graph.sequence()
     sequence.add(
-        _get_task(ctx, 'maintenance_interface.update_cluster'),
         _get_task(ctx, 'maintenance_interface.backup'),
         uninstall_node_instance_subgraph(
             manager_instance, graph, ignore_failure=True
@@ -88,8 +87,7 @@ def heal_tier1_manager(ctx, node_instance_id, diagnose_value, **_):
         install_node_instance_subgraph(host_instance, graph),
         install_node_instance_subgraph(manager_instance, graph),
         relationship.execute_target_operation(
-            'cloudify.interfaces.relationship_lifecycle.postconfigure',
-            kwargs={'force_join': True}
+            'cloudify.interfaces.relationship_lifecycle.postconfigure'
         )
     )
     graph.execute()
