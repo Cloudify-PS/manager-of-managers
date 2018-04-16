@@ -28,7 +28,7 @@ def execute_and_log(cmd,
         cert is already set, and this creates a conflict.
     :param deployment_workdir: If set to true instead of using the default
         .cloudify folder, we use a folder that depends on the deployment ID
-    :param no_log: If set to True the output will not be logged
+    :param no_log: If set to True the output will logged to the DEBUG logger
     :param ignore_errors: Don't raise an exception on errors if True
     """
     env = os.environ.copy()
@@ -74,8 +74,8 @@ def _process_output(proc, should_log):
     for stdout_line in iter(proc.stdout.readline, ""):
         if stdout_line:
             output_list.append(stdout_line)
-            if should_log:
-                ctx.logger.info(stdout_line)
+            log_func = ctx.logger.info if should_log else ctx.logger.debug
+            log_func(stdout_line)
 
     return '\n'.join(output_list)
 
