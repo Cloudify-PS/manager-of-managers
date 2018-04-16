@@ -22,11 +22,10 @@ def _snapshots_dir(deployment_id=None):
     return snapshots_dir
 
 
-def _is_snapshot_created(snapshot_id, deployment_id):
+def _is_snapshot_created(snapshot_id):
     output = execute_and_log(
         ['cfy', 'snapshots', 'list'],
         no_log=True,
-        deployment_id=deployment_id
     )
     for line in output.split('\n'):
         if snapshot_id not in line:
@@ -36,10 +35,9 @@ def _is_snapshot_created(snapshot_id, deployment_id):
     return False
 
 
-def _create_snapshot(snapshot_id, deployment_id, create_snap_params):
+def _create_snapshot(snapshot_id, create_snap_params):
     execute_and_log(
         ['cfy', 'snapshots', 'create', snapshot_id] + create_snap_params,
-        deployment_id=deployment_id
     )
     ctx.logger.info('Waiting for the snapshot to be created...')
     snapshot_created = False
@@ -50,7 +48,7 @@ def _create_snapshot(snapshot_id, deployment_id, create_snap_params):
             )
         )
 
-        snapshot_created = _is_snapshot_created(snapshot_id, deployment_id)
+        snapshot_created = _is_snapshot_created(snapshot_id)
         if snapshot_created:
             ctx.logger.info(
                 'Snapshot {0} created successfully'.format(snapshot_id)
@@ -126,12 +124,12 @@ def _upload_snapshot(config):
     ])
 
 
-def _download_snapshot(snapshot_id, output_path, deployment_id):
+def _download_snapshot(snapshot_id, output_path):
     execute_and_log([
         'cfy', 'snapshots',
         'download', snapshot_id,
         '-o', output_path
-    ], deployment_id=deployment_id)
+    ])
 
 
 def _transfer_agents(config):
@@ -166,7 +164,7 @@ def _get_backup_params():
 
 
 @operation
-def backup(deployment_id=None, backup_params=None, **_):
+def backup(**_):
     """
     Create a snapshot on a Tier 1 cluster, and download it to a dedicated
     folder on the Tier 2 manager
@@ -178,7 +176,7 @@ def backup(deployment_id=None, backup_params=None, **_):
         snapshot_id = now.strftime('%Y-%m-%d-%H:%M:%S')
 
     output_path = os.path.join(
-        _snapshots_dir(deployment_id),
+        _snapshots_dir(),
         '{0}.zip'.format(snapshot_id)
     )
     if os.path.exists(output_path):
@@ -188,14 +186,13 @@ def backup(deployment_id=None, backup_params=None, **_):
             'a snapshot ID based on the current date and time'
         )
 
-    manager_ip = get_current_master(deployment_id)
-    with profile(manager_ip, deployment_id):
-        _create_snapshot(snapshot_id, deployment_id, backup_params)
-        _download_snapshot(snapshot_id, output_path, deployment_id)
+    with profile(get_current_master()):
+        _create_snapshot(snapshot_id, backup_params)
+        _download_snapshot(snapshot_id, output_path)
     return output_path
 
 
-def restore(config):
+def restore(master_ip, config):
     """
     Restore a snapshot on a Tier 1 cluster, and (optionally) upgrade the agents
     """
@@ -207,7 +204,7 @@ def restore(config):
             '{0}.zip'.format(config.snapshot_id)
         )
 
-    with profile(get_current_master()):
+    with profile(master_ip):
         _upload_snapshot(config)
         _restore_snapshot(RESTORE_SNAP_ID, config.restore_params)
         _transfer_agents(config)
