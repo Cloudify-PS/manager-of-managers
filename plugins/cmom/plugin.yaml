@@ -84,16 +84,6 @@ node_types:
                 be used in conjunction with some of the below inputs
               type: boolean
               default: { get_input: restore }
-            backup:
-              description: |
-                Only relevant if `restore` is set to true!
-                Must be used in conjunction with `old_deployment_id` (and
-                optionally with `snapshot_id`).
-                If set to true, a snapshot will be created on the old
-                deployment (based on `old_deployment_id` and, if passed, on
-                `snapshot_id`), and it will be used in the restore workflow
-              type: boolean
-              default: { get_input: backup }
             snapshot_path:
               description: |
                 A local (relative to the Tier 2 manager) path to a snapshot
@@ -122,15 +112,6 @@ node_types:
                 executed after the restore is complete
               type: boolean
               default: { get_input: transfer_agents }
-            backup_params:
-              description: |
-                A list of arguments that should be passed to the `cfy snapshots create`
-                command. Available values are (should be passed as-is):
-                  --include-metrics
-                  --exclude-credentials
-                  --exclude-logs
-                  --exclude-events
-              default: { get_input: backup_params }
             restore_params:
               description: |
                 A list of arguments that should be passed to the `cfy snapshots restore`
@@ -166,7 +147,8 @@ node_types:
                 a snapshot ID based on the current deployemnt and datetime
                 will be assigned
               default: ''
-        update_cluster: cluster.cmom.cluster.update_cluster
+            backup_params:
+              default: { get_input: backup_params }
 
   cloudify.nodes.FileServer:
     derived_from: cloudify.nodes.Root

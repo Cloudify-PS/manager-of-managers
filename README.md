@@ -389,11 +389,6 @@ you wish to transfer data/agents from an old deployment.
 from a previous installation. Must be used in conjunction with some of
 the other inputs below. See [`plugin.yaml`](plugins/cmom/plugin.yaml)
 for more details (default: false)
-* `backup` - Only relevant if `restore` is set to true!
-Must be used in conjunction with `old_deployment_id` (and optionally
-with `snapshot_id`).  If set to true, a snapshot will be created on the old
-deployment (based on `old_deployment_id` and, if passed, on
-`snapshot_id`), and it will be used in the restore workflow (default: false)
 * `snapshot_path` - A local (relative to the Tier 2 manager) path to a snapshot that should be
 used. Mutually exclusive with `old_deployment_id` and `snapshot_id`
 (default: '')
@@ -406,14 +401,31 @@ be a special folder with all the snapshots from the Tier 1 managers. If the
 is provided as well (default: '')
 * `transfer_agents` - If set to `true`, an `install_new_agents` command will be executed after
 the restore is complete (default: true)
-* `backup_params` - An optional list of parameters to pass to the underlying
-`cfy snapshots create` command. Accepted values are: [`--include-metrics`,
-`--exclude-credentials`, `--exclude-logs`, `--exclude-events`]. These need to be 
-passed as-is with both dashes. (default: [])
 * `restore_params` - An optional list of parameters to pass to the underlying
 `cfy snapshots restore` command. Accepted values are: 
 [`--without-deployment-envs`, `--force`, `--restore-certificates`, 
 `--no-reboot`]. These need to be passed as-is with both dashes. (default: [])
+
+### Backup workflow
+
+There is a `backup` workflow that can be used at any time. It creates a 
+snapshot on the Tier 1 cluster, and downloads it to the Tier 2 manager.
+The snapshots are all saved in `/etc/cloudify/DEPLOYMENT_ID/snapshots`.
+
+Run the workflow like this:
+```
+cfy executions start backup -p inputs.yaml
+```
+
+Where the optional inputs file may contain the following: 
+
+* `snapshot_id` - The ID of the snapshot to create (will default to the 
+current time/date) 
+* `backup_params` - An optional list of parameters to pass to the underlying
+`cfy snapshots create` command. Accepted values are: [`--include-metrics`,
+`--exclude-credentials`, `--exclude-logs`, `--exclude-events`]. These need to be 
+passed as-is with both dashes. (default: [])
+
 
 ## Healing
 
