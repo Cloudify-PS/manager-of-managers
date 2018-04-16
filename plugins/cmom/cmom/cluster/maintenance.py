@@ -8,7 +8,8 @@ from cloudify.state import ctx_parameters as inputs
 from cloudify.exceptions import NonRecoverableError, CommandExecutionException
 
 from ..common import workdir
-from .utils import execute_and_log, profile, get_current_master
+from .utils import execute_and_log
+from .profile import profile, get_current_master
 
 SNAPSHOTS_FOLDER = 'snapshots'
 RESTORE_SNAP_ID = 'restored_snapshot'
@@ -63,13 +64,6 @@ def _create_snapshot(snapshot_id, deployment_id, create_snap_params):
 
 
 class UpgradeConfig(object):
-    BACKUP_PARAMS = {
-        '--include-metrics',
-        '--exclude-credentials',
-        '--exclude-logs',
-        '--exclude-events'
-    }
-
     RESTORE_PARAMS = {
         '--without-deployment-envs',
         '--force',
@@ -82,9 +76,7 @@ class UpgradeConfig(object):
         self.old_deployment_id = inputs.get('old_deployment_id')
         self.snapshot_path = inputs.get('snapshot_path')
         self.restore = inputs.get('restore', False)
-        self.backup = inputs.get('backup', False)
         self.transfer_agents = inputs.get('transfer_agents', True)
-        self.backup_params = inputs.get('backup_params', [])
         self.restore_params = inputs.get('restore_params', [])
 
     def validate(self):
@@ -97,42 +89,21 @@ class UpgradeConfig(object):
                         list(self.RESTORE_PARAMS), self.restore_params)
                 )
 
-            if self.backup:
-                if self.snapshot_path:
-                    self._raise_error(
-                        'then *either* backup may be set to True or '
-                        '`snapshot_path` may be provided, but not both'
-                    )
-                if not self.old_deployment_id:
-                    self._raise_error(
-                        'and `backup` is set to True, then '
-                        '`old_deployment_id` must be provided as well'
-                    )
-                if not all(param in self.BACKUP_PARAMS for
-                           param in self.backup_params):
-                    self._raise_error(
-                        'the only backup parameters allowed are: {0}, '
-                        'but: {1} were provided'.format(
-                            list(self.BACKUP_PARAMS), self.backup_params)
-                    )
+            wrong_inputs = False
+            if self.snapshot_path:
+                if any([self.old_deployment_id, self.snapshot_id]):
+                    wrong_inputs = True
             else:
-                wrong_inputs = False
-                if self.snapshot_path:
-                    if any([self.old_deployment_id, self.snapshot_id]):
-                        wrong_inputs = True
-                else:
-                    if not all([self.old_deployment_id, self.snapshot_id]):
-                        wrong_inputs = True
-                if wrong_inputs:
-                    self._raise_error(
-                        'and `backup` is set to False then either '
-                        '`snapshot_path` *or* `old_deployment_id` *and* '
-                        '`snapshot_id` need to be provided'
-                    )
+                if not all([self.old_deployment_id, self.snapshot_id]):
+                    wrong_inputs = True
+            if wrong_inputs:
+                self._raise_error(
+                    'either `snapshot_path` *or* `old_deployment_id` *and* '
+                    '`snapshot_id` need to be provided'
+                )
         else:
-            values = ['backup', 'old_deployment_id',
-                      'snapshot_id', 'snapshot_path',
-                      'backup_params', 'restore_params']
+            values = ['old_deployment_id', 'snapshot_id',
+                      'snapshot_path', 'restore_params']
 
             if any([getattr(self, value) for value in values]):
                 self._raise_error(
@@ -174,13 +145,33 @@ def _transfer_agents(config):
                 raise
 
 
+def _get_backup_params():
+    backup_params = inputs.get('backup_params', [])
+    if backup_params:
+        allowed_backup_params = {
+            '--include-metrics',
+            '--exclude-credentials',
+            '--exclude-logs',
+            '--exclude-events'
+        }
+        if not all(param in allowed_backup_params for
+                   param in backup_params):
+            raise NonRecoverableError(
+                'The only backup parameters allowed are: {0}, '
+                'but: {1} were provided'.format(
+                    list(allowed_backup_params),
+                    backup_params)
+            )
+    return backup_params
+
+
 @operation
 def backup(deployment_id=None, backup_params=None, **_):
     """
     Create a snapshot on a Tier 1 cluster, and download it to a dedicated
     folder on the Tier 2 manager
     """
-    backup_params = backup_params or []
+    backup_params = _get_backup_params()
     snapshot_id = inputs.get('snapshot_id')
     if not snapshot_id:
         now = datetime.now()
