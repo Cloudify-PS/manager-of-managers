@@ -276,23 +276,3 @@ def clear_data(**_):
     # Clear the configuration from the cluster's runtime properties
     ctx.instance.runtime_properties.pop('managers', None)
     ctx.instance.update()
-
-
-@operation
-def remove_from_cluster(**_):
-    # There's no point in removing the node from the cluster if we're
-    # uninstalling the whole deployment, as the VM instances themselves
-    # will be torn down
-    if ctx.workflow_id == 'uninstall':
-        return
-
-    manager_ip = ctx.instance.runtime_properties.get('manager_ip')
-    if manager_ip:
-        ctx.logger.info('Removing current node from cluster...')
-
-        master_ip = get_current_master()
-        # Ignoring the errors, because maybe the node was already removed
-        with profile(master_ip):
-            execute_and_log([
-                'cfy', 'cluster', 'nodes', 'remove', manager_ip
-            ], ignore_errors=True)
