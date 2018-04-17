@@ -72,7 +72,7 @@ def _get_cluster_master():
     raise RecoverableError(
         'Could not find a cluster leader in the cluster profile. This might '
         'mean that the cluster is in an undefined state (e.g. midway of '
-        'HA failover)'
+        'HA failover or right after starting the cluster)'
     )
 
 
@@ -112,13 +112,6 @@ def _create_profile(manager_ip, runtime_props):
         '--ssl',
         '--profile-name', profile_name
     ], no_log=True)
-    # If working with clusters, make sure the profile is recognized as
-    # a cluster profile
-    execute_and_log(
-        ['cfy', 'cluster', 'update-profile'],
-        no_log=True,
-        ignore_errors=True
-    )
     return profile_name
 
 
@@ -133,10 +126,6 @@ def _get_cluster_profile(managers, instance=None):
             with profile(manager_ip, instance=instance):
                 execute_and_log(
                     ['cfy', 'cluster', 'status'],
-                    no_log=True
-                )
-                execute_and_log(
-                    ['cfy', 'cluster', 'update-profile'],
                     no_log=True
                 )
                 ctx.logger.info('Found cluster profile: '
