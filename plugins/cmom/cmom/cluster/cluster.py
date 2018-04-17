@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 
 import shutil
+from time import sleep
 
 from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
-from cloudify.exceptions import CommandExecutionException
+from cloudify.exceptions import (
+    CommandExecutionException,
+    NonRecoverableError,
+    RecoverableError
+)
 
 from ..common import workdir
 
