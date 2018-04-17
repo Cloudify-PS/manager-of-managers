@@ -220,6 +220,10 @@ def _is_snapshot_restored(execution_id):
             continue
         if 'terminated' in line:
             return True
+        if 'failed' in line:
+            raise NonRecoverableError(
+                'Failed restoring snapshot. Output:\n{0}'.format(output)
+            )
     return False
 
 
