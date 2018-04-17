@@ -39,6 +39,7 @@ def execute_and_log(cmd,
         env['CFY_WORKDIR'] = deployment_workdir
 
     try:
+        ctx.logger.debug('Running command: {0}'.format(cmd))
         proc = _run_process(cmd, env)
     except OSError as e:
         if ignore_errors:
