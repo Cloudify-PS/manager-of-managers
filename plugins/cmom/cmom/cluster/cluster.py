@@ -32,11 +32,11 @@ def _get_master_config():
     )
 
 
-def _start_cluster(master_ip):
-    ctx.logger.info('Master starting cluster [{0}]'.format(master_ip))
+def _start_cluster():
+    master_ip, master_config = _get_master_config()
 
-    master_config = load_cluster_config()['managers'][master_ip]
-    with profile(master_config['public_ip']):
+    ctx.logger.info('Starting cluster on master: {0}'.format(master_ip))
+    with profile(master_ip):
         try:
             execute_and_log([
                 'cfy', 'cluster', 'start',
@@ -51,20 +51,42 @@ def _start_cluster(master_ip):
             raise
 
 
-def _join_cluster(master_ip, slave_ip):
-    ctx.logger.info('Slave `{0}` is joining the cluster'.format(slave_ip))
+def _remove_node_before_join(slave_ip):
+    ctx.logger.debug(
+        'Trying to remove the slave from the cluster, in case this '
+        'is a healing workflow'
+    )
+    # Ignoring the errors, because maybe the node was already removed
+    execute_and_log([
+        'cfy', 'cluster', 'nodes', 'remove', slave_ip
+    ], no_log=True, ignore_errors=True)
 
-    slave_config = load_cluster_config()['managers'][slave_ip]
 
-    with profile(master_ip) as master_profile:
-        with profile(slave_ip):
+def _update_cluster_profile():
+    ctx.logger.info('Updating cluster profile...')
+    execute_and_log(['cfy', 'cluster', 'update-profile'])
+
+
+def _run_join_command(master_profile, slave_config):
+    execute_and_log([
+        'cfy', 'cluster', 'join',
+        '--cluster-host-ip', slave_config['private_ip'],
+        '--cluster-node-name', slave_config['public_ip'],
+        master_profile
+    ])
+
+
+def _join_cluster(master_ip, slave_config):
+    slave_ip = slave_config['public_ip']
+    ctx.logger.info('Slave {0} is joining the cluster'.format(slave_ip))
+
+    with profile(master_ip, ctx.source.instance) as master_profile:
+        _remove_node_before_join(slave_ip)
+        _update_cluster_profile()
+
+        with profile(slave_ip, ctx.source.instance):
             try:
-                execute_and_log([
-                    'cfy', 'cluster', 'join',
-                    '--cluster-host-ip', slave_config['private_ip'],
-                    '--cluster-node-name', slave_config['public_ip'],
-                    master_profile
-                ])
+                _run_join_command(master_profile, slave_config)
             except CommandExecutionException as e:
                 # This is a somewhat expected bug when joining a cluster
                 if "Node joined the cluster" in e.error and \
