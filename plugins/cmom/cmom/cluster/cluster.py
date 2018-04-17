@@ -179,20 +179,34 @@ def join_cluster(**_):
     CloudifyCluster the source
     """
     manager_runtime_props = ctx.target.instance.runtime_properties
-    current_master = get_current_master()
+    manager_ip = manager_runtime_props['manager_ip']
 
-    master = current_master == manager_runtime_props['manager_ip']
+    try:
+        current_master = get_current_master(ctx.source.instance)
+    except RecoverableError as e:
+        if 'Could not find a cluster leader in the cluster profile' in str(e):
+            ctx.logger.debug(
+                'Caught error during get_current_master: {0}'.format(e)
+            )
+            return ctx.operation.retry(
+                'Could not join the cluster. Often this means that '
+                'the cluster is not yet ready. Retrying...',
+                retry_after=5
+            )
+        raise
 
-    if master and not force_join:
+    is_master = current_master == manager_ip
+
+    if is_master:
         ctx.logger.info(
-            'Current node `{0}` is the cluster master, '
+            'Current node {0} is the cluster master, '
             'nothing to do'.format(ctx.target.instance.id)
         )
     else:
-        if force_join:
-            current_master = update_cluster()
+        managers, _ = get_config(ctx.source.instance.runtime_properties)
+        manager_config = managers[manager_ip]
 
-        _join_cluster(current_master, manager_runtime_props['manager_ip'])
+        return _join_cluster(current_master, manager_config)
 
 
 @operation
