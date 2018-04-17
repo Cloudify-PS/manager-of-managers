@@ -71,6 +71,37 @@ def _get_small_config(manager_config):
     }
 
 
+def _wait_for_manager(master_ip):
+    """
+    We're waiting until 3 successive successful attempt to connect to the
+    manager has been made, to make sure that the manager has finished
+    rebooting (in a restore-certificates scenario), etc.
+    """
+    ctx.logger.info('Waiting for the manager to become responsive...')
+
+    successes = 0
+    retries = 0
+    retry_delay = 1
+
+    with profile(master_ip):
+        while successes < 3:
+            retries += 1
+            try:
+                execute_and_log(['cfy', 'status'], no_log=True)
+                successes += 1
+            except CommandExecutionException as e:
+                ctx.logger.debug('cfy status failed with: {0}'.format(e))
+                successes = 0
+            sleep(retry_delay)
+
+            if retries == 30:
+                raise NonRecoverableError(
+                    'Manager on IP {0} is not responsive'.format(master_ip)
+                )
+
+    ctx.logger.info('Manager is up and running after restore')
+
+
 @operation
 def start_cluster(**_):
     """
