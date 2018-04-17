@@ -9,14 +9,22 @@ from cloudify.exceptions import CommandExecutionException
 
 from ..common import workdir
 
-from .maintenance import restore, backup, UpgradeConfig
-from .utils import (
-    execute_and_log,
-    profile,
-    dump_cluster_config,
-    load_cluster_config,
-    get_current_master
-)
+from .utils import execute_and_log
+from .maintenance import restore, UpgradeConfig
+from .profile import profile, get_current_master, get_config
+
+
+def _get_master_config():
+    managers, _ = get_config(ctx.instance.runtime_properties)
+    for manager_ip, manager_config in managers.items():
+        if manager_config.get('is_master'):
+            return manager_ip, manager_config
+
+    raise NonRecoverableError(
+        "Could not find a node that's configured to be the master. "
+        "This means that something went wrong during the installation. "
+        "Current config is: {0}".format(managers)
+    )
 
 
 def _start_cluster(master_ip):
