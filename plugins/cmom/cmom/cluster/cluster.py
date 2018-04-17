@@ -170,47 +170,7 @@ def start_cluster(**_):
 
 
 @operation
-def update_cluster(**_):
-    """
-    Find a working cluster profile, through it find the new leader IP, and
-    update the cluster config accordingly
-    """
-
-    ctx.logger.info('Looking for a cluster profile...')
-    cluster_config = load_cluster_config()
-    managers = cluster_config['managers']
-    cluster_profile = _get_cluster_profile(managers)
-    if not cluster_profile:
-        return ctx.operation.retry(
-            'Could not find a profile with a cluster configured. This '
-            'might mean that the whole network is unreachable.'
-        )
-
-    with profile(cluster_profile):
-        new_master = _get_cluster_master()
-
-    for manager_ip, manager_config in managers.items():
-        manager_config['is_master'] = manager_ip == new_master
-
-    dump_cluster_config(cluster_config)
-    return new_master
-
-
-def _get_cluster_master():
-    """
-    Return the IP of the current cluster leader. This is relevant after a
-    failover, when the master has changed
-    """
-    output = execute_and_log(['cfy', 'cluster', 'nodes', 'list'], no_log=True)
-    for line in output.split('\n'):
-        if 'leader' in line:
-            leader_ip = line.split('|')[2].strip()
-            ctx.logger.info('The new leader is: `{0}`'.format(leader_ip))
-            return leader_ip
-
-
-@operation
-def join_cluster(force_join=False, **_):
+def join_cluster(**_):
     """
     Join the cluster created in the `start_cluster` if you're a slave.
     If you're the master, do nothing
