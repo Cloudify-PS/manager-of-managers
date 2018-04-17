@@ -116,7 +116,7 @@ def _download_ca_cert_and_key():
     return ca_cert, ca_key
 
 
-def _copy_external_cert_and_key():
+def _copy_external_cert_and_key(ca_cert, ca_key):
     ctx.logger.info('Copying external cert and key...')
 
     external_cert = os.path.join(_certs_dir(), 'external_cert.pem')
@@ -129,6 +129,8 @@ def _copy_external_cert_and_key():
     # These values will be dumped with the rest of the configuration
     ssl_inputs['external_cert_path'] = external_cert
     ssl_inputs['external_key_path'] = external_key
+    ssl_inputs['ca_cert_path'] = ca_cert
+    ssl_inputs['ca_key_path'] = ca_key
 
 
 def _generate_external_cert_and_key():
@@ -147,7 +149,7 @@ def _generate_external_cert_and_key():
         '--sign-cert', ca_cert,
         '--sign-key', ca_key
     ])
-    _copy_external_cert_and_key()
+    _copy_external_cert_and_key(ca_cert, ca_key)
     # Delete the ssl dir; it will be created by the installation
     execute_and_log(['sudo', 'rm', '-rf', ssl_dir])
 
