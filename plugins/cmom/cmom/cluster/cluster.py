@@ -58,7 +58,14 @@ def _join_cluster(master_ip, slave_ip):
                         "'NoneType' object has " \
                         "no attribute 'append'" in e.error:
                     return
-                raise
+                ctx.logger.debug(
+                    'Caught the following error during join: {0}'.format(e)
+                )
+                return ctx.operation.retry(
+                    'Could not join the cluster. Often this means that '
+                    'the cluster is not yet ready. Retrying...',
+                    retry_after=5
+                )
 
 
 def _get_small_config(manager_config):
