@@ -248,7 +248,9 @@ def add_manager_config(**_):
     # The first manager to connect to the cluster is the master
     if not managers:
         config['is_master'] = True
-        ctx.logger.info('`{0}` is the master node'.format(manager_ip))
+        ctx.logger.info('{0} is the master node'.format(manager_ip))
+    else:
+        config['is_master'] = False
 
     managers[manager_ip] = config
     ctx.source.instance.runtime_properties['managers'] = managers
