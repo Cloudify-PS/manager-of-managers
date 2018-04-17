@@ -153,48 +153,20 @@ def start_cluster(**_):
     3. Perform upgrade from a previous deployment, if relevant
 
     This runs in the `start` operation of the default lifecycle of the
-    `cloudify_cluster_config` node
+    `cloudify_cluster` node
     """
     config = UpgradeConfig()
     config.validate()
 
-    dump_cluster_config({
-        'managers': ctx.instance.runtime_properties['managers'],
-        'ca_cert': inputs['ca_cert']
-    })
-
-    if config.backup:
-        config.snapshot_path = backup(
-            config.old_deployment_id,
-            config.backup_params
-        )
+    ctx.instance.runtime_properties['ca_cert'] = inputs['ca_cert']
+    ctx.instance.update()
 
     if config.restore:
-        restore(config)
+        master_ip, _ = _get_master_config()
+        restore(master_ip, config)
+        _wait_for_manager(master_ip)
 
-    _start_cluster(get_current_master())
-
-
-def _get_cluster_profile(managers):
-    """
-    Try to use all of the available profiles, until you find one which has
-    the cluster configured on, and return it
-    """
-    for manager_ip, manager_config in managers.items():
-        ctx.logger.info('Trying `{0}`'.format(manager_ip))
-        try:
-            with profile(manager_ip):
-                execute_and_log(['cfy', 'cluster', 'status'], no_log=True)
-                execute_and_log(
-                    ['cfy', 'cluster', 'update-profile'],
-                    no_log=True
-                )
-                ctx.logger.info('Found cluster profile: '
-                                '{0}'.format(manager_ip))
-
-                return manager_ip
-        except CommandExecutionException:
-            pass
+    _start_cluster()
 
 
 @operation
