@@ -47,13 +47,26 @@ def profile(manager_ip=None, instance=None):
 
 
 def _update_new_master(new_master, instance, managers):
+    master = None
+    slaves = []
     for manager, manager_config in managers.items():
-        is_master = manager == new_master
-        manager_config['is_master'] = is_master
+        if manager == new_master:
+            manager_config['is_master'] = True
+            master = manager
+        else:
+            manager_config['is_master'] = False
+            slaves.append(manager)
+
+    runtime_props = instance.runtime_properties
 
     # Only updating when needed, to avoid conflicts during node-instance update
-    if instance.runtime_properties.dirty:
-        instance.runtime_properties['managers'] = managers
+    if runtime_props.dirty or 'outputs' not in runtime_props:
+        runtime_props['managers'] = managers
+
+        runtime_props['outputs'] = {
+            'Master': master,
+            'Slaves': slaves
+        }
         instance.update()
 
 

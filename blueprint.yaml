@@ -22,7 +22,7 @@ imports:
   # Use the "plugin:" notation if the plugin folder is not included in the
   # blueprint. Otherwise, use the regular path to the plugin.yaml file
   - plugins/cmom/plugin.yaml
-#  - plugin:cloudify-manager-of-managers?version=1.4.0
+#  - plugin:cloudify-manager-of-managers?version=1.4.1
 
 node_templates:
   cloudify_fileserver:
@@ -85,7 +85,5 @@ policies:
 
 outputs:
   cluster_ips:
-    description: >
-      A list of manager IPs in the cluster (the master is marked with an
-      `is_master` flag with a `True` value, unless there was an HA failover)
-    value: { get_attribute: [ cloudify_cluster, managers ] }
+    description: The master and the slaves of the Tier 1 cluster
+    value: { get_attribute: [ cloudify_cluster, outputs ] }
