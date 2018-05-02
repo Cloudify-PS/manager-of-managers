@@ -125,21 +125,21 @@ def _wait_for_manager(master_ip):
     retries = 0
     retry_delay = 1
 
-    with profile(master_ip):
-        while successes < 3:
-            retries += 1
-            try:
+    while successes < 3:
+        retries += 1
+        try:
+            with profile(master_ip):
                 execute_and_log(['cfy', 'status'], no_log=True)
                 successes += 1
-            except CommandExecutionException as e:
-                ctx.logger.debug('cfy status failed with: {0}'.format(e))
-                successes = 0
-            sleep(retry_delay)
+        except CommandExecutionException as e:
+            ctx.logger.debug('cfy status/use failed with: {0}'.format(e))
+            successes = 0
+        sleep(retry_delay)
 
-            if retries == 30:
-                raise NonRecoverableError(
-                    'Manager on IP {0} is not responsive'.format(master_ip)
-                )
+        if retries == 30:
+            raise NonRecoverableError(
+                'Manager on IP {0} is not responsive'.format(master_ip)
+            )
 
     ctx.logger.info('Manager is up and running after restore')
 
