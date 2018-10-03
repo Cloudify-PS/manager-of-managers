@@ -124,10 +124,20 @@ def _copy_external_cert_and_key(ca_cert, ca_key):
     shutil.copy(EXTERNAL_CERT_PATH, external_cert)
     shutil.copy(EXTERNAL_KEY_PATH, external_key)
 
+    # We chain the external CA to the external cert, to avoid bootstrap errors
+    # when running `cfy profiles set -c`
+    chain_cert = os.path.join(_certs_dir(), 'chained_external_cert.pem')
+    with open(chain_cert, 'w') as chain_cert_f:
+        with open(external_cert, 'r') as external_cert_f:
+            chain_cert_f.write(external_cert_f.read())
+        chain_cert_f.write(os.linesep)
+        with open(ca_cert, 'r') as ca_cert_f:
+            chain_cert_f.write(ca_cert_f.read())
+
     ssl_inputs = inputs['config'].setdefault('ssl_inputs', {})
 
     # These values will be dumped with the rest of the configuration
-    ssl_inputs['external_cert_path'] = external_cert
+    ssl_inputs['external_cert_path'] = chain_cert
     ssl_inputs['external_key_path'] = external_key
     ssl_inputs['ca_cert_path'] = ca_cert
     ssl_inputs['ca_key_path'] = ca_key

@@ -22,7 +22,7 @@ imports:
   # Use the "plugin:" notation if the plugin folder is not included in the
   # blueprint. Otherwise, use the regular path to the plugin.yaml file
   - plugins/cmom/plugin.yaml
-#  - plugin:cloudify-manager-of-managers?version=1.4.1
+#  - plugin:cloudify-manager-of-managers?version=1.4.2
 
 node_templates:
   cloudify_fileserver:
