@@ -260,6 +260,11 @@ def get_status(**_):
                 is_json=True
             )
             leader_status = execute_and_log(['cfy', 'status'], is_json=True)
+
+            # This is to fix a quirk in how the statuses are returned
+            # (with an alignment of 30 spaces)
+            for service in leader_status:
+                service['service'] = service['service'].strip()
     except NonRecoverableError as e:
         cluster_status = []
         leader_status = {}
