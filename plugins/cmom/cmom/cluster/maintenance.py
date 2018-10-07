@@ -7,7 +7,6 @@ from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
 from cloudify.exceptions import NonRecoverableError, CommandExecutionException
 
-from ..common import workdir
 from .utils import execute_and_log
 from .profile import profile, get_current_master
 
@@ -16,10 +15,14 @@ RESTORE_SNAP_ID = 'restored_snapshot'
 
 
 def _snapshots_dir(deployment_id=None):
-    snapshots_dir = os.path.join(workdir(deployment_id), SNAPSHOTS_FOLDER)
-    if not os.path.isdir(snapshots_dir):
-        os.mkdir(snapshots_dir)
-    return snapshots_dir
+    deployment_id = deployment_id or ctx.deployment.id
+    base_snapshots_dir = os.path.expanduser('~/{0}'.format(SNAPSHOTS_FOLDER))
+    if not os.path.isdir(base_snapshots_dir):
+        os.mkdir(base_snapshots_dir)
+    dep_snapshots_dir = os.path.join(base_snapshots_dir, deployment_id)
+    if not os.path.isdir(dep_snapshots_dir):
+        os.mkdir(dep_snapshots_dir)
+    return dep_snapshots_dir
 
 
 def _is_snapshot_created(snapshot_id):
