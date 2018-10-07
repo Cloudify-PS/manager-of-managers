@@ -26,14 +26,9 @@ def _snapshots_dir(deployment_id=None):
 
 
 def _is_snapshot_created(snapshot_id):
-    output = execute_and_log(
-        ['cfy', 'snapshots', 'list'],
-        no_log=True,
-    )
-    for line in output.split('\n'):
-        if snapshot_id not in line:
-            continue
-        if 'created' in line:
+    snapshots = execute_and_log(['cfy', 'snapshots', 'list'], is_json=True)
+    for snapshot in snapshots:
+        if snapshot['id'] == snapshot_id and snapshot['status'] == 'created':
             return True
     return False
 
@@ -214,19 +209,16 @@ def restore(master_ip, config):
 
 
 def _is_snapshot_restored(execution_id):
-    output = execute_and_log(
+    execution = execute_and_log(
         ['cfy', 'executions', 'get', execution_id],
-        no_log=True, ignore_errors=True
+        is_json=True, ignore_errors=True
     )
-    for line in output.split('\n'):
-        if execution_id not in line:
-            continue
-        if 'terminated' in line:
-            return True
-        if 'failed' in line:
-            raise NonRecoverableError(
-                'Failed restoring snapshot. Output:\n{0}'.format(output)
-            )
+    if execution['status'] == 'completed':
+        return True
+    elif execution['status'] == 'failed':
+        raise NonRecoverableError(
+            'Failed restoring snapshot. Error:\n{0}'.format(execution['error'])
+        )
     return False
 
 

@@ -1,4 +1,5 @@
 import os
+import json
 import subprocess
 
 from cloudify import ctx
@@ -15,7 +16,8 @@ def execute_and_log(cmd,
                     clean_env=False,
                     deployment_workdir=None,
                     no_log=False,
-                    ignore_errors=False):
+                    ignore_errors=False,
+                    is_json=False):
     """
     Execute a command and log each line of its output as it is printed to
     stdout
@@ -30,6 +32,8 @@ def execute_and_log(cmd,
         .cloudify folder, we use a folder that depends on the deployment ID
     :param no_log: If set to True the output will logged to the DEBUG logger
     :param ignore_errors: Don't raise an exception on errors if True
+    :param is_json: If set to True, assume the output is a JSON and parse it
+        as such
     """
     env = os.environ.copy()
     if clean_env:
@@ -57,6 +61,8 @@ def execute_and_log(cmd,
         raise CommandExecutionException(
             cmd, error=output, output=output, code=return_code
         )
+    if is_json:
+        output = json.loads(output)
     return output
 
 
@@ -72,13 +78,14 @@ def workdir(deployment_id=None):
 
 def _process_output(proc, should_log):
     output_list = []
+    log_func = ctx.logger.info if should_log else ctx.logger.debug
     for stdout_line in iter(proc.stdout.readline, ""):
         if stdout_line:
             output_list.append(stdout_line)
-            log_func = ctx.logger.info if should_log else ctx.logger.debug
             log_func(stdout_line)
 
-    return '\n'.join(output_list)
+    output = '\n'.join(output_list)
+    return output
 
 
 def _run_process(cmd, env):

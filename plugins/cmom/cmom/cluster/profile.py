@@ -75,10 +75,10 @@ def _get_cluster_master():
     Return the IP of the current cluster leader. This is relevant after a
     failover, when the master has changed
     """
-    output = execute_and_log(['cfy', 'cluster', 'nodes', 'list'], no_log=True)
-    for line in output.split('\n'):
-        if 'leader' in line:
-            leader_ip = line.split('|')[2].strip()
+    hosts = execute_and_log(['cfy', 'cluster', 'nodes', 'list'], is_json=True)
+    for host in hosts:
+        if host['state'] == 'leader':
+            leader_ip = host['host_ip']
             ctx.logger.info('The current leader is: {0}'.format(leader_ip))
             return leader_ip
 
