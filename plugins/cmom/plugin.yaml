@@ -148,6 +148,7 @@ node_types:
               default: ''
             backup_params:
               default: { get_input: backup_params }
+        get_status: cluster.cmom.cluster.get_status
 
   cloudify.nodes.FileServer:
     derived_from: cloudify.nodes.Root
@@ -223,6 +224,9 @@ workflows:
       diagnose_value:
         description: Diagnosed reason of failure
         default: Not provided
+
+  get_status:
+    mapping: cluster.cmom.cluster.workflows.get_status
 
 relationships:
 

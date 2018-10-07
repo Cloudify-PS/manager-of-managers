@@ -6,5 +6,6 @@ from .cluster import (                              # NOQA
     join_cluster
 )
 from .maintenance import (                          # NOQA
-    backup
+    backup,
+    get_status
 )

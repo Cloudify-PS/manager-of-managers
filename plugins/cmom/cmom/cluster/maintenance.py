@@ -253,3 +253,27 @@ def _restore_snapshot(snapshot_id, restore_params):
         raise NonRecoverableError(
             'Could not restore snapshot {0}'.format(snapshot_id)
         )
+
+
+@operation
+def get_status(**_):
+    error = ''
+    try:
+        with profile(get_current_master()):
+            cluster_status = execute_and_log(
+                ['cfy', 'cluster', 'nodes', 'list'],
+                is_json=True
+            )
+            leader_status = execute_and_log(['cfy', 'status'], is_json=True)
+    except NonRecoverableError as e:
+        cluster_status = []
+        leader_status = {}
+        error = str(e)
+
+    current_status = {
+        'cluster_status': cluster_status,
+        'leader_status': leader_status,
+        'error': error
+    }
+    ctx.instance.runtime_properties['status'] = current_status
+    return current_status

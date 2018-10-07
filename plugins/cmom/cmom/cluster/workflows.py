@@ -37,6 +37,11 @@ def backup(ctx, **kwargs):
     _execute_task(ctx, 'maintenance_interface.backup', **kwargs)
 
 
+@workflow
+def get_status(ctx, **kwargs):
+    _execute_task(ctx, 'maintenance_interface.get_status', **kwargs)
+
+
 def _get_manager_node_instance(host_instance):
     """
     Return the `cloudify_manager` node instance connected to the current host
