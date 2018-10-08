@@ -8,6 +8,6 @@ setup(
     packages=find_packages(include='cmom*'),
     description='Cloudify Manager of Managers plugin',
     install_requires=[
-        'cloudify-plugins-common==4.3'
+        'cloudify-common==4.5'
     ],
 )
