@@ -1,0 +1,27 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  A meta blueprint for managing multiple CMoM deployments.
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.5/types.yaml
+
+  # Meta Manager of Managers plugin
+  # Use the "plugin:" notation if the plugin folder is not included in the
+  # blueprint. Otherwise, use the regular path to the plugin.yaml file
+  - plugins/meta/plugin.yaml
+#  - plugin:cloudify-meta-manager?version=0.1
+
+
+node_templates:
+  meta_node:
+    type: cloudify.nodes.MetaManager
+
+
+outputs:
+  status:
+    description: The statuses of all the deployments added to the blueprint
+    value: { get_attribute: [ meta_node, status ]}
+  deployments:
+    description: A list of deployments that were added to the meta blueprint
+    value: { get_attribute: [ meta_node, deployments ]}

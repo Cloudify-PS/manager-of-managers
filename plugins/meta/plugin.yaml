@@ -1,0 +1,30 @@
+plugins:
+  meta:
+    executor: central_deployment_agent
+    source: meta
+    package_name: cloudify-meta-manager
+
+node_types:
+  cloudify.nodes.MetaManager:
+    derived_from: cloudify.nodes.Root
+    interfaces:
+      runtime_interface:
+        add_deployment:
+          implementation: meta.meta.operations.add_deployment
+          inputs:
+            deployment_id:
+              description: |
+                The ID of the snapshot that will be created. If not specified,
+                a snapshot ID based on the current deployemnt and datetime
+                will be assigned
+              default: ''
+        get_status: meta.meta.operations.get_status
+
+workflows:
+  add_deployment:
+    mapping: meta.meta.workflows.add_deployment
+    parameters:
+      deployment_id:
+        description: The ID of the MoM to add to the meta blueprint
+
+  get_status: meta.meta.workflows.get_status
