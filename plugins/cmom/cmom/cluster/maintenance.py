@@ -171,7 +171,7 @@ def backup(**_):
     snapshot_id = inputs.get('snapshot_id')
     if not snapshot_id:
         now = datetime.now()
-        snapshot_id = now.strftime('%Y-%m-%d-%H:%M:%S')
+        snapshot_id = 'snap_{0}'.format(now.strftime('%Y_%m_%d_%H_%M_%S'))
 
     output_path = os.path.join(
         _snapshots_dir(),
