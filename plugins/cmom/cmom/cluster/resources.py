@@ -87,7 +87,11 @@ Expected format is:
             continue
 
         # Create basic command
-        cmd = ['cfy', 'secrets', 'create', secret['key'], '--update-if-exists']
+        cmd = ['cfy', 'secrets', 'create', secret['key']]
+
+        # `visibility` and `--update-if-exists` are mutually exclusive
+        if not secret.get('visibility'):
+            cmd.append('--update-if-exists')
 
         # Add string or file as the value of the secret
         string = secret.get('string')
