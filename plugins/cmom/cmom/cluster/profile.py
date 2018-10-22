@@ -78,7 +78,7 @@ def _get_cluster_master():
     hosts = execute_and_log(['cfy', 'cluster', 'nodes', 'list'], is_json=True)
     for host in hosts:
         if host['state'] == 'leader':
-            leader_ip = host['host_ip']
+            leader_ip = host['name']
             ctx.logger.info('The current leader is: {0}'.format(leader_ip))
             return leader_ip
 
