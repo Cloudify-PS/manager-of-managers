@@ -31,8 +31,8 @@ First, upload the IaaS plugin to the manager. e.g. run:
 cfy plugins upload <WAGON_URL> -y <YAML_URL>
 ```
 
-[link_to_wagon](https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.5.2/cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn)
-[link to yaml](https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.5.2/plugin.yaml)
+[link_to_wagon](https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.7.5/cloudify_openstack_plugin-2.7.5-py27-none-linux_x86_64-centos-Core.wgn)
+[link to yaml](https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.7.5/plugin.yaml)
 
 Second, you'll need to create a Wagon from the CMoM plugin. Run (this
 is assuming you're inside the `manager-of-managers` folder):
