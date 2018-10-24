@@ -1,8 +1,8 @@
 from time import sleep
 
 from cloudify import ctx as op_ctx
+from cloudify.decorators import operation
 from cloudify.manager import get_rest_client
-from cloudify.decorators import workflow, operation
 from cloudify.state import ctx_parameters as inputs
 from cloudify.exceptions import NonRecoverableError
 
