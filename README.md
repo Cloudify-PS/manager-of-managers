@@ -31,8 +31,8 @@ First, upload the IaaS plugin to the manager. e.g. run:
 cfy plugins upload <WAGON_URL> -y <YAML_URL>
 ```
 
-[link_to_wagon](https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.12.1/cloudify_openstack_plugin-2.12.1-py27-none-linux_x86_64-centos-Core.wgn)
-[link to yaml](https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.12.1/plugin.yaml)
+[link_to_wagon](https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.12.0/cloudify_openstack_plugin-2.12.0-py27-none-linux_x86_64-centos-Core.wgn)
+[link to yaml](https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.12.0/plugin.yaml)
 
 Second, you'll need to create a Wagon from the CMoM plugin. Run (this
 is assuming you're inside the `manager-of-managers` folder):
@@ -171,6 +171,8 @@ blueprint. Implementations for other IaaSes will follow.
 * `os_image` - OpenStack image name or ID to use for the new server
 * `os_flavor` - OpenStack flavor name or ID to use for the new server
 * `os_network` - OpenStack network name or ID the new server will be connected to
+* `os_subnet` - OpenStack name or ID of the subnet that's connected to 
+the network that is to be used by the manager
 * `os_keypair` - OpenStack key pair name or ID of the key to associate with the new server
 * `os_security_group` - The name or ID of the OpenStack security group the new server will connect to
 * `os_server_group_policy` - The policy to use for the server group
@@ -200,16 +202,13 @@ for allocating floating IPs
 
 2. Using only an internal network, without a floating IP. This requires
 creating a new port, which is assumed to be connected to an existing
-subnet; thus a special input is needed:
-* `os_subnet` - OpenStack name or ID of the subnet that's
-connected to the network that is to be used by the manager
+subnet.
 
 3. Using a known in advance resource pool of IPs and hostnames. Like
 in the previous section, this requires creating a new port. This
 method also creates a "resource pool" object, that holds a list of
 resources and allocates them as the need arises. The inputs for this
 mode are:
-* `os_subnet` - Like in the above mode
 * `resource_pool` - A list of resources from which the IP addresses and
 the hostnames should be chosen. The format should be as follows:
 ```
