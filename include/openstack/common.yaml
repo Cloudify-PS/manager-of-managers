@@ -69,6 +69,11 @@ node_types:
                   NetworkCollector: {}
 
 node_templates:
+
+  # We use this dummy node to contain all the nodes that we wish to scale
+  scaling_group_container:
+    type: cloudify.nodes.Root
+
   os_security_group:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
