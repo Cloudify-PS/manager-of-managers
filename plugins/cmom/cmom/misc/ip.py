@@ -4,13 +4,13 @@ from cloudify.state import ctx_parameters as inputs
 
 
 @operation
-def set_floating_ip_on_host(**_):
+def set_floating_ip_on_port(**_):
     """
     Use this operation when connecting a host to a floating IP. This operation
     will set the `public_ip` runtime property on the host instance
     """
     floating_ip = ctx.target.instance.runtime_properties['floating_ip_address']
-    ctx.source.instance.runtime_properties['public_ip'] = floating_ip
+    ctx.source.instance.runtime_properties['floating_ip_address'] = floating_ip
     ctx.source.instance.update()
 
     ctx.logger.info('Setting floating IP {0} for `{1}`'.format(
@@ -74,11 +74,17 @@ def set_ip_from_port(**_):
     operation will set the `public_ip` runtime property on the host instance
     """
 
-    ip_address = ctx.target.instance.runtime_properties['fixed_ip_address']
-    ctx.source.instance.runtime_properties['public_ip'] = ip_address
+    port_runtime_props = ctx.target.instance.runtime_properties
+    private_ip = port_runtime_props['fixed_ip_address']
+
+    # If the port has a floating IP attached to it, we should use as the
+    # public IP. If not, just use the internal fixed_ip_address
+    public_ip = port_runtime_props.get('floating_ip_address', private_ip)
+
+    ctx.source.instance.runtime_properties['public_ip'] = public_ip
     ctx.source.instance.update()
 
     ctx.logger.info('Setting IP {0} from port for `{1}`'.format(
-        ip_address,
+        public_ip,
         ctx.source.instance.id
     ))

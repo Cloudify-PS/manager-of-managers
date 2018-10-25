@@ -1,10 +1,10 @@
 relationships:
 
-  server_connected_to_floating_ip:
-    derived_from: cloudify.openstack.server_connected_to_floating_ip
+  port_connected_to_floating_ip:
+    derived_from: cloudify.openstack.port_connected_to_floating_ip
     target_interfaces:
       cloudify.interfaces.relationship_lifecycle:
-        preconfigure: misc.cmom.misc.set_floating_ip_on_host
+        preconfigure: misc.cmom.misc.set_floating_ip_on_port
 
   server_connected_to_port:
     derived_from: cloudify.openstack.server_connected_to_port
