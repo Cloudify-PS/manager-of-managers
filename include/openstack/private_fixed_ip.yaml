@@ -1,8 +1,4 @@
 inputs:
-  os_subnet:
-    description: >
-      OpenStack name or ID of the subnet that's connected to the
-      network that is to be used by the manager
   resource_pool:
     description: >
       A list of resources from which the IP addresses and the hostnames should
@@ -44,19 +40,9 @@ node_templates:
     relationships:
     # This is here just for scaling's sake
     - type: cloudify.relationships.contained_in
-      target: os_network
+      target: scaling_group_container
     - type: resource_connected_to_resource_pool
       target: resource_pool
-
-  os_subnet:
-    type: cloudify.openstack.nodes.Subnet
-    properties:
-      openstack_config: *openstack_configuration
-      use_external_resource: true
-      resource_id: { get_input: os_subnet }
-    relationships:
-      - target: os_network
-        type: cloudify.relationships.contained_in
 
   os_port:
     type: cloudify.openstack.nodes.Port
@@ -72,7 +58,7 @@ node_templates:
                 - ip_address: { get_attribute: [ resource, fixed_ip ] }
                   subnet_id: { get_attribute: [ os_subnet, external_id ]}
     relationships:
-    - type: cloudify.relationships.contained_in
+    - type: cloudify.relationships.connected_to
       target: os_network
     - type: cloudify.openstack.port_connected_to_subnet
       target: os_subnet
@@ -80,6 +66,8 @@ node_templates:
       target: os_security_group
     - type: cloudify.relationships.depends_on
       target: resource
+    - type: cloudify.relationships.contained_in
+      target: scaling_group_container
 
   host:
     type: cloudify.openstack.nodes.Host
@@ -90,13 +78,12 @@ node_templates:
         target: os_port
       - type: cloudify.openstack.server_connected_to_server_group
         target: os_server_group
-      # We're doing "contained_in" here, in order to take advantage of the
-      # scaling semantics. We need all group members to be contained
-      # in the same node
-      - type: cloudify.relationships.contained_in
+      - type: cloudify.relationships.depends_on
         target: os_network
       - type: cloudify.relationships.depends_on
         target: resource
+      - type: cloudify.relationships.contained_in
+        target: scaling_group_container
     interfaces:
       cloudify.interfaces.lifecycle:
         create:

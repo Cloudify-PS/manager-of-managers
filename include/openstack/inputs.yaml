@@ -5,6 +5,10 @@ inputs:
     description: OpenStack flavor name or ID to use for the new server
   os_network:
     description: OpenStack network name or ID the new server will be connected to
+  os_subnet:
+    description: >
+      OpenStack name or ID of the subnet that's connected to the
+      network that is to be used by the manager
   os_keypair:
     description: OpenStack key pair name or ID of the key to associate with the new server
   os_security_group:
