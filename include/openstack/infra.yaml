@@ -4,8 +4,8 @@
 
 imports:
   # TODO: Change to using the plugin: syntax in offline environments
-#  - plugin:cloudify-openstack-plugin?version=2.5.2
-  - http://www.getcloudify.org/spec/openstack-plugin/2.5.2/plugin.yaml
+#  - plugin:cloudify-openstack-plugin?version=2.12.1
+  - http://www.getcloudify.org/spec/openstack-plugin/2.12.1/plugin.yaml
 
   - inputs.yaml
   - common.yaml

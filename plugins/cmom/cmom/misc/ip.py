@@ -50,9 +50,7 @@ def get_resources_from_resource_pool(**_):
         fixed_hostname, ctx.source.instance.id
     ))
 
-    # The neutron plugin expects a list of dicts with a `ip_address` key
-    fixed_ip = [{'ip_address': ip_address}]
-    ctx.source.instance.runtime_properties['fixed_ip'] = fixed_ip
+    ctx.source.instance.runtime_properties['fixed_ip'] = ip_address
     ctx.source.instance.runtime_properties['fixed_hostname'] = fixed_hostname
     ctx.source.instance.update()
 

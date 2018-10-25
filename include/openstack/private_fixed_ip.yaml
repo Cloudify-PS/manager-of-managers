@@ -68,7 +68,9 @@ node_templates:
           implementation: openstack.neutron_plugin.port.create
           inputs:
             args:
-              fixed_ips: { get_attribute: [ resource, fixed_ip ] }
+              fixed_ips:
+                - ip_address: { get_attribute: [ resource, fixed_ip ] }
+                  subnet_id: { get_attribute: [ os_subnet, external_id ]}
     relationships:
     - type: cloudify.relationships.contained_in
       target: os_network
