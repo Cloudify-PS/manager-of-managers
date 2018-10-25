@@ -581,3 +581,40 @@ Users that are working with the Tier 1 cluster via the GUI will have
 to use a different IP when connecting to the manager if the healed
 node was the cluster leader. If the healed node was a replica, no
 further actions are required.
+
+## Meta blueprint and plugin
+
+> Important: this is a beta feature, and it shouldn't be used in production.
+> It is not guaranteed to remain a part of this product.
+
+The `meta` blueprint and plugin can be used to aggregate several MoM 
+deployments to more easily manage them. 
+
+First, upload the `meta` plugin to the Tier 2 manager.
+
+Next upload the `meta_blueprint.yaml` blueprint to the manager, and create
+a deployment from it. For example:
+
+```
+cfy blueprints upload meta_blueprint.yaml -b meta
+cfy deployments create meta -b meta
+```
+
+Then, run the `add_deployment` workflow to add any _live_ MoM deployments.
+For example, if you have a deployment with the ID `cfy_manager_dep_1`, run:
+
+```
+cfy executions start add_deployment -d meta -p delpoyment_id=cfy_manager_dep_1 
+```
+
+You can run this workflow for every MoM deployment you have.
+
+And finally, you can run a `get_status` workflow on the meta deployment, to
+populate its outputs with the statuses of _all_ the statuses of the attached
+deployments.
+
+```
+cfy executions start get_status -d meta
+```
+
+Then check out the outputs of the `meta` deployment to get the statuses.
