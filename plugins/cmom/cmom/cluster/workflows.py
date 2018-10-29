@@ -42,6 +42,31 @@ def get_status(ctx, **kwargs):
     _execute_task(ctx, 'maintenance_interface.get_status', **kwargs)
 
 
+@workflow
+def upload_blueprints(ctx, **kwargs):
+    _execute_task(ctx, 'maintenance_interface.upload_blueprints', **kwargs)
+
+
+@workflow
+def upload_plugins(ctx, **kwargs):
+    _execute_task(ctx, 'maintenance_interface.upload_plugins', **kwargs)
+
+
+@workflow
+def create_tenants(ctx, **kwargs):
+    _execute_task(ctx, 'maintenance_interface.create_tenants', **kwargs)
+
+
+@workflow
+def create_deployments(ctx, **kwargs):
+    _execute_task(ctx, 'maintenance_interface.create_deployments', **kwargs)
+
+
+@workflow
+def create_secrets(ctx, **kwargs):
+    _execute_task(ctx, 'maintenance_interface.create_secrets', **kwargs)
+
+
 def _get_manager_node_instance(host_instance):
     """
     Return the `cloudify_manager` node instance connected to the current host

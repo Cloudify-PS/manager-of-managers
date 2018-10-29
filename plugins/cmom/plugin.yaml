@@ -132,6 +132,9 @@ node_types:
             secrets:
               description: A list of secrets to create on the Tier 1 manager
               default: { get_input: secrets }
+            deployments:
+              description: A list of deployments to create on the Tier 1 manager
+              default: { get_input: deployments }
             blueprints:
               description: A list of blueprints to upload to the Tier 1 manager
               default: { get_input: blueprints }
@@ -149,6 +152,37 @@ node_types:
             backup_params:
               default: { get_input: backup_params }
         get_status: cluster.cmom.cluster.get_status
+        upload_blueprints:
+          implementation: cluster.cmom.cluster.upload_blueprints
+          inputs:
+            blueprints:
+              description: A list of blueprints to upload to the Tier 1 manager
+              default: []
+        upload_plugins:
+          implementation: cluster.cmom.cluster.upload_plugins
+          inputs:
+            plugins:
+              description: A list of plugins to upload to the Tier 1 manager
+              default: []
+        create_tenants:
+          implementation: cluster.cmom.cluster.create_tenants
+          inputs:
+            tenants:
+              description: A list of tenants to create on the Tier 1 manager
+              default: []
+        create_secrets:
+          implementation: cluster.cmom.cluster.create_secrets
+          inputs:
+            secrets:
+              description: A list of secrets to create on the Tier 1 manager
+              default: []
+        create_deployments:
+          implementation: cluster.cmom.cluster.create_deployments
+          inputs:
+            deployments:
+              description: A list of deployments to create on the Tier 1 manager
+              default: []
+
 
   cloudify.nodes.FileServer:
     derived_from: cloudify.nodes.Root
@@ -207,6 +241,33 @@ workflows:
         default: []
       blueprints:
         default: []
+      deployments:
+        default: []
+
+  upload_blueprints:
+    mapping: cluster.cmom.cluster.workflows.upload_blueprints
+    parameters:
+      blueprints: {}
+
+  upload_plugins:
+    mapping: cluster.cmom.cluster.workflows.upload_plugins
+    parameters:
+      plugins: {}
+
+  create_tenants:
+    mapping: cluster.cmom.cluster.workflows.create_tenants
+    parameters:
+      tenants: {}
+
+  create_secrets:
+    mapping: cluster.cmom.cluster.workflows.create_secrets
+    parameters:
+      secrets: {}
+
+  create_deployments:
+    mapping: cluster.cmom.cluster.workflows.create_deployments
+    parameters:
+      deployments: {}
 
   backup:
     mapping: cluster.cmom.cluster.workflows.backup

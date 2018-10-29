@@ -1,3 +1,5 @@
+import json
+
 from cloudify import ctx
 from cloudify.decorators import operation
 from cloudify.state import ctx_parameters as inputs
@@ -153,6 +155,49 @@ Expected format is:
         )
 
 
+def _create_deployments():
+    deployments = inputs.get('deployments', [])
+    for deployment in deployments:
+        if ('blueprint_id' not in deployment) or \
+                ('inputs' in deployment and
+                 not isinstance(deployment['inputs'], (dict, basestring))):
+            ctx.logger.error("""
+Provided deployment input is incorrect: {0}
+Expected format is:
+  deployments:
+      - deployment_id: <DEP_ID_1>
+        blueprint_id: <BLU_ID_1>
+        inputs: <INPUTS_1>
+        tenant: <TENANT_1>
+        visibility: <VISIBILITY_1>
+`blueprint_id` is required, and inputs can only be dict or string
+                """.format(deployment))
+            continue
+
+        # Create basic command
+        blueprint_id = deployment['blueprint_id']
+        cmd = ['cfy', 'deployments', 'create', '-b', blueprint_id]
+
+        # Add optional params
+        deployment_id = deployment.get('deployment_id', blueprint_id)
+        cmd += [deployment_id]
+
+        dep_inputs = deployment.get('inputs')
+        if dep_inputs:
+            # If we have a dict, we'll pass it as a JSON string to the command.
+            # Otherwise, it's a string with the value of a YAML file path
+            if isinstance(dep_inputs, dict):
+                dep_inputs = json.dumps(dep_inputs)
+            cmd += ['-i', dep_inputs]
+
+        cmd = _add_tenant_and_visibility(cmd, deployment)
+        _try_running_command(
+            cmd,
+            'Could not create deployment {0} from '
+            'blueprint {1}'.format(deployment_id, blueprint_id)
+        )
+
+
 @operation
 def add_additional_resources(**_):
     """ Upload/create additional resources on the managers of the cluster """
@@ -162,3 +207,34 @@ def add_additional_resources(**_):
         _upload_plugins()
         _create_secrets()
         _upload_blueprints()
+        _create_deployments()
+
+
+@operation
+def upload_blueprints(**_):
+    with profile(get_current_master()):
+        _upload_blueprints()
+
+
+@operation
+def upload_plugins(**_):
+    with profile(get_current_master()):
+        _upload_plugins()
+
+
+@operation
+def create_tenants(**_):
+    with profile(get_current_master()):
+        _create_tenants()
+
+
+@operation
+def create_secrets(**_):
+    with profile(get_current_master()):
+        _create_secrets()
+
+
+@operation
+def create_deployments(**_):
+    with profile(get_current_master()):
+        _create_deployments()

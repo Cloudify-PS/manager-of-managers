@@ -75,9 +75,32 @@ inputs:
         * PATH can be either a local blueprint yaml file, a blueprint
           archive or a url to a blueprint archive (required)
         * ID is the unique identifier for the blueprint (if not specified, the
-          name of the blueprint folder/archive will be used
+          name of the blueprint folder/archive will be used)
         * FILENAME is the name of an archive's main blueprint file. Only
           relevant when uploading an archive
+        * TENANT is the tenant to which the blueprint will be uploaded (the tenant
+          needs to already exist on the manager - use the above `tenants` input
+          to create any tenants in advance). (Optional - default is
+          default_tenant)
+        * VISIBILITY defines who can see the secret - must be one of
+          [private, tenant, global] (Optional - default is tenant).
+    default: []
+
+  deployments:
+    description: >
+      A list of additional deployments to create on the manager after install.
+      The format should be as follows:
+      - deployment_id: <DEP_ID_1>
+        blueprint_id: <BLU_ID_1>
+        inputs: <INPUTS_1>
+        tenant: <TENANT_1>
+        visibility: <VISIBILITY_1>
+      Where:
+        * DEPLOYMENT_ID is the unique identifier for the blueprint (if not
+          specified, the id of the blueprint will be used)
+        * BLUEPRINT_ID is the unique identifier for the blueprint
+        * INPUTS is either a dictionary of inputs for the deployment, or a
+          PATH to a local (i.e. accessible on the Tier 2 manager) YAML file
         * TENANT is the tenant to which the blueprint will be uploaded (the tenant
           needs to already exist on the manager - use the above `tenants` input
           to create any tenants in advance). (Optional - default is
