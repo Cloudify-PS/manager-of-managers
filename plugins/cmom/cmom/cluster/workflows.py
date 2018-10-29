@@ -67,6 +67,11 @@ def create_secrets(ctx, **kwargs):
     _execute_task(ctx, 'maintenance_interface.create_secrets', **kwargs)
 
 
+@workflow
+def execute_workflow(ctx, **kwargs):
+    _execute_task(ctx, 'maintenance_interface.execute_workflow', **kwargs)
+
+
 def _get_manager_node_instance(host_instance):
     """
     Return the `cloudify_manager` node instance connected to the current host

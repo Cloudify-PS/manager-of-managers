@@ -182,6 +182,35 @@ node_types:
             deployments:
               description: A list of deployments to create on the Tier 1 manager
               default: []
+        execute_workflow:
+          implementation: cluster.cmom.cluster.execute_workflow
+          inputs:
+            workflow_id:
+              type: string
+              default: ''  # Required, validated on the workflow level
+            deployment_id:
+              type: string
+              default: ''  # Required, validated on the workflow level
+            parameters:
+              default: {}
+            allow_custom_parameters:
+              type: boolean
+              default: false
+            force:
+              type: boolean
+              default: false
+            timeout:
+              type: integer
+              default: 900
+            include_logs:
+              type: boolean
+              default: true
+            queue:
+              type: boolean
+              default: false
+            tenant_name:
+              type: string
+              default: ''
 
 
   cloudify.nodes.FileServer:
@@ -268,6 +297,34 @@ workflows:
     mapping: cluster.cmom.cluster.workflows.create_deployments
     parameters:
       deployments: {}
+
+  execute_workflow:
+    mapping: cluster.cmom.cluster.workflows.execute_workflow
+    parameters:
+      workflow_id:
+        type: string
+      deployment_id:
+        type: string
+      parameters:
+        default: {}
+      allow_custom_parameters:
+        type: boolean
+        default: false
+      force:
+        type: boolean
+        default: false
+      timeout:
+        type: integer
+        default: 900
+      include_logs:
+        type: boolean
+        default: true
+      queue:
+        type: boolean
+        default: false
+      tenant_name:
+        type: string
+        default: ''
 
   backup:
     mapping: cluster.cmom.cluster.workflows.backup

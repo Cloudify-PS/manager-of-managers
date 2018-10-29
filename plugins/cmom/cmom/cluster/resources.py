@@ -198,6 +198,39 @@ Expected format is:
         )
 
 
+def _execute_workflow():
+    cmd = ['cfy', 'executions', 'start', '-d', inputs['deployment_id'],
+           inputs['workflow_id'], '--timeout', str(inputs['timeout'])]
+
+    if inputs['allow_custom_parameters']:
+        cmd += ['--allow-custom-parameters']
+
+    if inputs['tenant_name']:
+        cmd += ['-t', inputs['tenant_name']]
+
+    params = inputs['parameters']
+    if params:
+        if isinstance(params, dict):
+            params = json.dumps(params)
+        cmd += ['-p', params]
+
+    if inputs['queue']:
+        cmd += ['--queue']
+
+    if inputs['force']:
+        cmd += ['--force']
+
+    _try_running_command(
+        cmd,
+        'Could not execute workflow {0} on deployment {1} '
+        'with params: {2}'.format(
+            inputs['workflow_id'],
+            inputs['deployment_id'],
+            params
+        )
+    )
+
+
 @operation
 def add_additional_resources(**_):
     """ Upload/create additional resources on the managers of the cluster """
@@ -238,3 +271,9 @@ def create_secrets(**_):
 def create_deployments(**_):
     with profile(get_current_master()):
         _create_deployments()
+
+
+@operation
+def execute_workflow(**_):
+    with profile(get_current_master()):
+        _execute_workflow()

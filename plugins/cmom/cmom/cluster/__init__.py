@@ -4,7 +4,8 @@ from .resources import (                            # NOQA
     upload_plugins,
     create_tenants,
     create_secrets,
-    create_deployments
+    create_deployments,
+    execute_workflow
 )
 from .cluster import (                              # NOQA
     start_cluster,
