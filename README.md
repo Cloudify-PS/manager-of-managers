@@ -411,8 +411,34 @@ Where:
   default_tenant)
 * `VISIBILITY` defines who can see the secret - must be one of
   \[private, tenant, global\] (Optional - default is tenant).
+  
+5. `deployments` - A list of additional deployments to create on the
+manager after install. The format is:
 
-5. `scripts` - a list of scripts to run after the manager's installation.
+```
+inputs:
+  deployments:
+    - deployment_id: <DEP_ID_1>
+      blueprint_id: <BLU_ID_1>
+      inputs: <INPUTS_1>
+      tenant: <TENANT_1>
+      visibility: <VISIBILITY_1>
+```
+
+Where:
+* `DEPLOYMENT_ID` is the unique identifier for the blueprint (if not
+  specified, the id of the blueprint will be used)
+* `BLUEPRINT_ID` is the unique identifier for the blueprint
+* `INPUTS` is either a dictionary of inputs for the deployment, or a
+  PATH to a local (i.e. accessible on the Tier 2 manager) YAML file
+* `TENANT` is the tenant to which the blueprint will be uploaded (the tenant
+  needs to already exist on the manager - use the above `tenants` input
+  to create any tenants in advance). (Optional - default is
+  default_tenant)
+* `VISIBILITY` defines who can see the secret - must be one of
+  \[private, tenant, global\] (Optional - default is tenant).
+
+6. `scripts` - a list of scripts to run after the manager's installation.
 All these scripts need to be available on the Tier 2 manager and
 accessible by `cfyuser`. These scripts will be executed *after* the
 manager is installed but *before* the cluster is created. The format is:
@@ -423,7 +449,7 @@ scripts:
   - <PATH_TO_SCRIPT_2>
 ```
 
-6. `files` - a list of files to copy to the Tier 1 managers from the
+7. `files` - a list of files to copy to the Tier 1 managers from the
 Tier 2 amnager after the Tier 1 managers' installation.
 All these files need to be available on the Tier 2 manager and
 accessible by `cfyuser`. These files will be copied *after* the
@@ -464,7 +490,7 @@ the restore is complete (default: true)
 [`--without-deployment-envs`, `--force`, `--restore-certificates`, 
 `--no-reboot`]. These need to be passed as-is with both dashes. (default: [])
 
-## Additional workflows
+## Workflows
 
 ### `backup` workflow
 
@@ -494,6 +520,119 @@ the `status` runtime property of the `cloudify_cluster` node, and is then
 reflected in the `cluster_status` deployment output. See more in the [Outputs](#outputs)
 section. 
 
+### `upload_blueprints` workflow
+
+This workflow allows to upload blueprints to the Tier 1 cluster.
+The workflow accepts a single param `blueprints`, which is a list of 
+blueprints in the format described in [Additional inputs](#additional-inputs).
+
+### `upload_blueprints` workflow
+
+This workflow allows to upload blueprints to the Tier 1 cluster.
+The workflow accepts a single param `blueprints`, which is a list of 
+blueprints in the format described in [Additional inputs](#additional-inputs).
+
+### `upload_blueprints` workflow
+
+This workflow allows to upload blueprints to the Tier 1 cluster.
+The workflow accepts a single param `blueprints`, which is a list of 
+blueprints in the format described in [Additional inputs](#additional-inputs).
+
+### `upload_plugins` workflow
+
+This workflow allows to upload plugins to the Tier 1 cluster.
+The workflow accepts a single param `plugins`, which is a list of 
+plugins in the format described in [Additional inputs](#additional-inputs).
+
+### `create_tenants` workflow
+
+This workflow allows to create tenants on the Tier 1 cluster.
+The workflow accepts a single param `tenants`, which is a list of 
+tenants in the format described in [Additional inputs](#additional-inputs).
+
+### `create_secrets` workflow
+
+This workflow allows to create secrets on the Tier 1 cluster.
+The workflow accepts a single param `secrets`, which is a list of 
+secrets in the format described in [Additional inputs](#additional-inputs).
+
+### `create_deployments` workflow
+
+This workflow allows to create deployments on the Tier 1 cluster.
+The workflow accepts a single param `deployments`, which is a list of 
+deployments in the format described in [Additional inputs](#additional-inputs).  
+
+### `add_resources` workflow
+
+This workflow allows to perform in one workflow the following operations:
+* Create tenants
+* Create secrets
+* Upload plugins
+* Upload blueprints
+* Create deployments
+
+It accepts the params that the previous 5 workflows do:
+
+```yaml
+parameters:
+  tenants: []
+  secrets: []
+  plugins: []
+  blueprints: []
+  deployments: []
+```
+
+All of those are lists in the format described in
+[Additional inputs](#additional-inputs).
+
+### `execute_workflow` workflow
+
+This workflow allows executing a workflow on the Tier 1 cluster. This is 
+similar to running `cfy executions start` on a manager. The format of the
+inputs is:
+
+```yaml
+parameters:
+  workflow_id:
+    description: The ID of the workflow to execute
+    type: string
+  deployment_id:
+    description: The ID of the deployment on which to execute the workflow
+    type: string
+  parameters:
+    description: Parameters for the workflow (can be provided like inputs)
+    default: {}
+  allow_custom_parameters:
+    description: >
+      Allow passing custom parameters (which were not
+      defined in the workflow's schema in the blueprint) to the execution
+    type: boolean
+    default: false
+  force:
+    description: >
+      Execute the workflow even if there is an ongoing
+      execution for the given deployment
+    type: boolean
+    default: false
+  timeout:
+    description: Operation timeout in seconds
+    type: integer
+    default: 900
+  include_logs:
+    description: Include logs in returned events
+    type: boolean
+    default: true
+  queue:
+    description: >
+      If set, executions that can`t currently run will be queued and run 
+      automatically when possible. 
+    type: boolean
+    default: false
+  tenant_name:
+    description: The name of the tenant in which the deployment exists
+    type: string
+    default: ''
+``` 
 
 ## Healing
 
