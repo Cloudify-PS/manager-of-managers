@@ -302,27 +302,42 @@ workflows:
     mapping: cluster.cmom.cluster.workflows.execute_workflow
     parameters:
       workflow_id:
+        description: The ID of the workflow to execute
         type: string
       deployment_id:
+        description: The ID of the deployment on which to execute the workflow
         type: string
       parameters:
+        description: Parameters for the workflow (can be provided like inputs)
         default: {}
       allow_custom_parameters:
+        description: >
+          Allow passing custom parameters (which were not
+          defined in the workflow's schema in the blueprint) to the execution
         type: boolean
         default: false
       force:
+        description: >
+          Execute the workflow even if there is an ongoing
+          execution for the given deployment
         type: boolean
         default: false
       timeout:
+        description: Operation timeout in seconds
         type: integer
         default: 900
       include_logs:
+        description: Include logs in returned events
         type: boolean
         default: true
       queue:
+        description: >
+          If set, executions that can`t currently run will be queued and run
+          automatically when possible.
         type: boolean
         default: false
       tenant_name:
+        description: The name of the tenant in which the deployment exists
         type: string
         default: ''
 
