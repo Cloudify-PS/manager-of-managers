@@ -213,6 +213,8 @@ def _is_snapshot_restored(execution_id):
         ['cfy', 'executions', 'get', execution_id],
         is_json=True, ignore_errors=True
     )
+    if not execution:
+        return False
     if execution['status'] == 'completed':
         return True
     elif execution['status'] == 'failed':
