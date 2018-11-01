@@ -62,7 +62,18 @@ def execute_and_log(cmd,
             cmd, error=output, output=output, code=return_code
         )
     if is_json:
-        output = json.loads(output)
+        try:
+            output = json.loads(output)
+        except ValueError:
+            if ignore_errors:
+                ctx.logger.debug(
+                    'Failed getting JSON output from cmd `{0}`.\n'
+                    'Output is: {1}'.format(
+                        cmd, output
+                    )
+                )
+                return {}
+            raise
     return output
 
 
