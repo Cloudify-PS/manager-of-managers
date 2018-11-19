@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='cloudify-manager-of-managers',
-    version='1.5.6',
+    version='1.5.7',
     author='Cloudify',
     author_email='hello@cloudify.co',
     packages=find_packages(include='cmom*'),
