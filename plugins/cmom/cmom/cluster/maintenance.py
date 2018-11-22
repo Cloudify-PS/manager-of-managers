@@ -132,6 +132,13 @@ def _download_snapshot(snapshot_id, output_path):
 
 def _transfer_agents(config):
     if config.transfer_agents:
+        # This is necessary for when cloudify-restservice is going to be
+        # restarted after snapshot restore, in which case we don't want
+        # to run the agents upgrade until it's finished. This will not
+        # be necessary after 4.5.5, as beginning with this version
+        # we restart the restservice at the beginning of the restore process
+        ctx.logger.info('Waiting for post-restore commands to finish...')
+        sleep(10)
         try:
             execute_and_log(['cfy', 'agents', 'install', '--all-tenants'])
         except CommandExecutionException as e:
