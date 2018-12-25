@@ -122,6 +122,9 @@ def heal_tier1_manager(ctx, node_instance_id, diagnose_value, **_):
         install_node_instance_subgraph(host_instance, graph),
         install_node_instance_subgraph(manager_instance, graph),
         relationship.execute_target_operation(
+            'cloudify.interfaces.relationship_lifecycle.preconfigure'
+        ),
+        relationship.execute_target_operation(
             'cloudify.interfaces.relationship_lifecycle.postconfigure'
         )
     )

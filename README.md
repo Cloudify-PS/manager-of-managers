@@ -756,3 +756,20 @@ cfy executions start get_status -d meta
 ```
 
 Then check out the outputs of the `meta` deployment to get the statuses.
+
+## Running Patched Cluster
+
+Prepare your Tier 2 Manager with the files in ./options in your /etc/cloudify directory.
+
+Add Update your inputs with something like this:
+
+```yaml
+files:
+  - src: /etc/cloudify/ssh_key
+    dst: /home/centos/ssh_key
+  - src: /etc/cloudify/0001-skip-host-checking-on-patchify.patch
+    dst: /home/centos/0001-skip-host-checking-on-patchify.patch
+
+scripts: [/etc/cloudify/patch_manager.sh]
+```
+
