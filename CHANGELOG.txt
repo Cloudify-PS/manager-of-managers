@@ -1,0 +1,3 @@
+2.0.2:
+  - Add cluster preconfigure operation to heal tier1 manager workflow in order to fix issue with joining cluster.
+  - Add example scripts for patching tier1 managers as part of install/scale/heal/

@@ -1,0 +1,38 @@
+From f67d7be1c59eacc7ec8deee46975ded7e6955d4b Mon Sep 17 00:00:00 2001
+From: earthmant <trammell@cloudify.co>
+Date: Mon, 24 Dec 2018 16:46:21 +0200
+Subject: [PATCH] skip host checking on patchify
+
+---
+ patchify | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/patchify b/patchify
+index ce061dd..3d9ec08 100755
+--- a/patchify
++++ b/patchify
+@@ -324,7 +324,9 @@ def patch_command_available(manager_connection_string, keyfile):
+ def ssh(manager_connection_string, keyfile, command):
+     ssh_command = ['ssh']
+     if keyfile:
+-        ssh_command.extend(['-i', keyfile])
++        ssh_command.extend(['-i', keyfile,
++                            '-o', 'StrictHostKeyChecking=no',
++                           ])
+     ssh_command.extend([manager_connection_string, command])
+     return subprocess.check_output(ssh_command)
+ 
+@@ -360,7 +362,9 @@ def upload_and_verify_patch_files(manager_connection_string, patch_dir,
+         expected_md5sum = patch['md5sum']
+         scp_command = ['scp']
+         if keyfile:
+-            scp_command.extend(['-i', keyfile])
++            scp_command.extend(['-i', keyfile,
++                                '-o', 'StrictHostKeyChecking=no',
++                               ])
+         scp_command.extend([
+             os.path.join(patch_dir, patch_name),
+             '{mgr}:{staging_dir}'.format(
+-- 
+2.6.0
+
