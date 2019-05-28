@@ -6,7 +6,7 @@ description: >
   several auxiliary resources to the cluster.
 
 imports:
-  - http://www.getcloudify.org/spec/cloudify/4.5/types.yaml
+  - http://www.getcloudify.org/spec/cloudify/5.0/types.yaml
   - http://www.getcloudify.org/spec/diamond-plugin/1.3.8/plugin.yaml
 
   # Swap the imports in this file to use any other IaaS or infrastructure
